@@ -1,0 +1,69 @@
+version: '3'
+
+services:
+  gateway:
+    image: nginx:1.21.5
+    container_name: gateway
+    ports:
+      - "8000:8000"
+    environment:
+      - TZ=Asia/Shanghai
+    volumes:
+      - ./deploy/gateway:/etc/nginx/conf.d
+      - ./data/gateway/log:/var/log/nginx
+    restart: always
+    privileged: true
+
+  ark-admin-web:
+    image: arklnk/ark-admin:web
+    container_name: ark-admin-web
+    volumes:
+      - ./deploy/web:/etc/nginx/conf.d
+    ports:
+      - "80:8080"
+    restart: always
+
+  ark-admin-midway:
+    image: arklnk/ark-admin:midway
+    container_name: ark-admin-midway
+    volumes:
+      - ./deploy/service/core/etc:/app/etc
+      - ./data/service/logs:/app/logs
+    restart: always
+
+  mysql:
+    image: mysql:5.7
+    container_name: mysql
+    environment:
+      TZ: Asia/Shanghai
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: ark_admin
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./data/mysql/data:/var/lib/mysql
+      - ./deploy/sql/:/docker-entrypoint-initdb.d/
+    privileged: true
+    restart: always
+
+  phpmyadmin:
+    image: phpmyadmin:latest
+    container_name: phpmyadmin
+    restart: always
+    ports:
+      - "8080:80"
+    environment:
+      - PMA_ARBITRARY=1
+
+  redis:
+    image: redis:6.2.5
+    container_name: redis
+    ports:
+      - "6379:6379"
+    environment:
+      TZ: Asia/Shanghai
+    volumes:
+      - ./data/redis/data:/data:rw
+    command: "redis-server --requirepass 123456  --appendonly yes"
+    privileged: true
+    restart: always
