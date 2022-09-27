@@ -1,5 +1,5 @@
 {
-  "name": "my-midway-project",
+  "name": "ark-admin-midway",
   "version": "1.0.0",
   "description": "",
   "private": true,
@@ -43,8 +43,8 @@
   ],
   "repository": {
     "type": "git",
-    "url": ""
+    "url": "https://github.com/arklnk/ark-admin-midway"
   },
-  "author": "anonymous",
+  "author": "hackycy",
   "license": "MIT"
 }
