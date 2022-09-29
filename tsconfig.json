@@ -20,9 +20,13 @@
     "src/**/*.ts",
     "src/**/*.d.ts",
     "types/**/*.d.ts",
-    "types/**/*.ts",
+    "types/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "dist",
+    "**/*.js",
     "test/**/*.d.ts",
     "test/**/*.ts"
-  ],
-  "exclude": ["node_modules", "dist", "**/*.js"]
+  ]
 }
