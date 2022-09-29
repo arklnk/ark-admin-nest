@@ -5,7 +5,6 @@ specifiers:
   '@midwayjs/cli': ^1.3.13
   '@midwayjs/core': ^3.5.3
   '@midwayjs/decorator': ^3.4.11
-  '@midwayjs/info': ^3.5.3
   '@midwayjs/koa': ^3.5.3
   '@midwayjs/logger': ^2.17.0
   '@midwayjs/mock': ^3.5.3
@@ -23,7 +22,6 @@ dependencies:
   '@midwayjs/bootstrap': 3.5.3
   '@midwayjs/core': 3.5.3_@midwayjs+decorator@3.4.11
   '@midwayjs/decorator': 3.4.11
-  '@midwayjs/info': 3.5.3
   '@midwayjs/koa': 3.5.3_@midwayjs+decorator@3.4.11
   '@midwayjs/logger': 2.17.0
   '@midwayjs/validate': 3.5.3
@@ -954,13 +952,6 @@ packages:
 
   /@midwayjs/i18n/3.5.3:
     resolution: {integrity: sha512-VsyZLEvgHHNISuciJvaImtZOOzARiumC7d8UMjxciwwYalZ+8D9Xl3AhyZ9RlzyjwqaD2misPfx9nReO0BljnQ==}
-    engines: {node: '>=12'}
-    dependencies:
-      picomatch: 2.3.1
-    dev: false
-
-  /@midwayjs/info/3.5.3:
-    resolution: {integrity: sha512-BnxYeFBVd55dC3yYLSvs7aLweGIvUCwdqAPmArAioWg66EHQZlVZOEGB1p71lOA27aJw4Ot0h9C096VQZ612Fw==}
     engines: {node: '>=12'}
     dependencies:
       picomatch: 2.3.1
