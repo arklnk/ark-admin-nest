@@ -7,9 +7,10 @@
     "@midwayjs/bootstrap": "^3.5.3",
     "@midwayjs/core": "^3.5.3",
     "@midwayjs/decorator": "^3.4.11",
-    "@midwayjs/jwt": "3",
+    "@midwayjs/jwt": "^3.5.3",
     "@midwayjs/koa": "^3.5.3",
     "@midwayjs/logger": "^2.17.0",
+    "@midwayjs/redis": "^3.5.3",
     "@midwayjs/validate": "^3.5.3",
     "dayjs": "^1.11.5",
     "lodash-es": "^4.17.21"
