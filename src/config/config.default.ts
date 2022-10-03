@@ -6,4 +6,5 @@ export default {
   koa: {
     port: 7001,
   },
+  rootUserId: 1,
 } as MidwayConfig;

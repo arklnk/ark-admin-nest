@@ -1,6 +1,7 @@
 import { MidwayConfig } from '@midwayjs/core';
 
 export default {
+  rootUserId: parseInt(process.env.ROOT_UID || '1'),
   jwt: {
     secret: 'kRZ3kA7LuB4LqOWi',
     expiresIn: 86400,
