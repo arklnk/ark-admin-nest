@@ -5,7 +5,7 @@ import * as jwt from '@midwayjs/jwt';
 import * as redis from '@midwayjs/redis';
 import { join } from 'path';
 import { InternalErrorFilter } from './filter/internal.filter';
-import { TransformMiddleware } from './middleware/transform.middleware';
+import { FormatMiddleware } from './middleware/format.middleware';
 
 @Configuration({
   imports: [koa, validate, jwt, redis],
@@ -17,7 +17,7 @@ export class ContainerLifeCycle {
 
   async onReady() {
     // middleware
-    this.app.useMiddleware([TransformMiddleware]);
+    this.app.useMiddleware([FormatMiddleware]);
 
     // filter
     this.app.useFilter([InternalErrorFilter]);

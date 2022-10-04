@@ -4,7 +4,7 @@ import { BaseResponse } from '../../types';
 import { Middleware } from '@midwayjs/decorator';
 
 @Middleware()
-export class TransformMiddleware implements IMiddleware<Context, NextFunction> {
+export class FormatMiddleware implements IMiddleware<Context, NextFunction> {
   resolve() {
     return async (
       ctx: Context,
@@ -22,6 +22,6 @@ export class TransformMiddleware implements IMiddleware<Context, NextFunction> {
   }
 
   static getName(): string {
-    return 'transform';
+    return 'format';
   }
 }
