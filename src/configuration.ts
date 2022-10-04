@@ -1,25 +1,31 @@
-import { Configuration, App } from '@midwayjs/decorator';
+import { Configuration, App, Inject } from '@midwayjs/decorator';
 import * as koa from '@midwayjs/koa';
 import * as validate from '@midwayjs/validate';
 import * as jwt from '@midwayjs/jwt';
 import * as redis from '@midwayjs/redis';
 import { join } from 'path';
-import { InternalErrorFilter } from './filter/internal.filter';
-import { FormatMiddleware } from './middleware/format.middleware';
+import { ILifeCycle, MidwayDecoratorService } from '@midwayjs/core';
+import { registerDecorator } from './decorator/registerDecorator';
+import { registerFilter } from './filter/registerFilter';
+import { registerMiddleware } from './middleware/registerMiddleware';
 
 @Configuration({
   imports: [koa, validate, jwt, redis],
   importConfigs: [join(__dirname, './config')],
 })
-export class ContainerLifeCycle {
+export class MainConfiguration implements ILifeCycle {
   @App()
   app: koa.Application;
 
+  @Inject()
+  decoratorService: MidwayDecoratorService;
+
   async onReady() {
     // middleware
-    this.app.useMiddleware([FormatMiddleware]);
-
+    registerMiddleware(this.app);
     // filter
-    this.app.useFilter([InternalErrorFilter]);
+    registerFilter(this.app);
+    // decorator
+    registerDecorator(this.decoratorService);
   }
 }
