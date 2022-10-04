@@ -5,6 +5,7 @@ export default {
   keys: '1664247205167_2315',
   koa: {
     port: 7001,
+    globalPrefix: '/admin',
   },
   rootUserId: 1,
 } as MidwayConfig;

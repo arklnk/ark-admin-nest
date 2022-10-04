@@ -1,4 +1,4 @@
-import type { AdminUser } from './common';
+import type { AdminUser } from '.';
 
 import '@midwayjs/core';
 

@@ -5,7 +5,7 @@ export interface AdminUser {
   uid: number;
 }
 
-export interface Result<T = any> {
+export interface BaseResponse<T = any> {
   msg: string;
   code: number;
   data?: T;

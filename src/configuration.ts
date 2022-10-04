@@ -4,9 +4,8 @@ import * as validate from '@midwayjs/validate';
 import * as jwt from '@midwayjs/jwt';
 import * as redis from '@midwayjs/redis';
 import { join } from 'path';
-// import { DefaultErrorFilter } from './filter/default.filter';
-// import { NotFoundFilter } from './filter/notfound.filter';
 import { ReportMiddleware } from './middleware/report.middleware';
+import { InternalErrorFilter } from './filter/internal.filter';
 
 @Configuration({
   imports: [koa, validate, jwt, redis],
@@ -17,9 +16,10 @@ export class ContainerLifeCycle {
   app: koa.Application;
 
   async onReady() {
-    // add middleware
+    // middleware
     this.app.useMiddleware([ReportMiddleware]);
-    // add filter
-    // this.app.useFilter([NotFoundFilter, DefaultErrorFilter]);
+
+    // filter
+    this.app.useFilter([InternalErrorFilter]);
   }
 }
