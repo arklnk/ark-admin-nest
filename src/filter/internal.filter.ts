@@ -1,5 +1,4 @@
-import type { BaseResponse } from '../../types';
-
+import { BaseResponse } from '../../types';
 import { MidwayHttpError, MidwayEnvironmentService } from '@midwayjs/core';
 import { Catch, Inject } from '@midwayjs/decorator';
 import { Context } from '@midwayjs/koa';
