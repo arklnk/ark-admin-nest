@@ -5,9 +5,9 @@ import * as jwt from '@midwayjs/jwt';
 import * as redis from '@midwayjs/redis';
 import { join } from 'path';
 import { ILifeCycle, MidwayDecoratorService } from '@midwayjs/core';
-import { registerDecorator } from './decorator/registerDecorator';
-import { registerFilter } from './filter/registerFilter';
-import { registerMiddleware } from './middleware/registerMiddleware';
+import { registerDecorator } from './decorator/register';
+import { registerFilter } from './filter/register';
+import { registerMiddleware } from './middleware/register';
 
 @Configuration({
   imports: [koa, validate, jwt, redis],
