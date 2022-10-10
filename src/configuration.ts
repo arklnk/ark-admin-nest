@@ -1,3 +1,4 @@
+import './polyfill';
 import { Configuration, App, Inject } from '@midwayjs/decorator';
 import * as koa from '@midwayjs/koa';
 import * as validate from '@midwayjs/validate';
