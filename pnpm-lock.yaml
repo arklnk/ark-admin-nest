@@ -15,12 +15,12 @@ specifiers:
   '@types/jest': ^26.0.24
   '@types/jsonwebtoken': ^8.5.9
   '@types/koa': ^2.13.5
-  '@types/lodash-es': ^4.17.6
+  '@types/lodash': ^4.14.186
   '@types/node': ^14.18.31
   cross-env: ^6.0.3
   dayjs: ^1.11.5
   jest: ^26.6.3
-  lodash-es: ^4.17.21
+  lodash: ^4.17.21
   mwts: ^1.3.0
   mysql2: ^2.3.3
   rimraf: ^3.0.2
@@ -39,7 +39,7 @@ dependencies:
   '@midwayjs/typeorm': 3.5.3
   '@midwayjs/validate': 3.5.3
   dayjs: 1.11.5
-  lodash-es: 4.17.21
+  lodash: 4.17.21
   mysql2: 2.3.3
   typeorm: 0.3.10_mysql2@2.3.3
 
@@ -49,7 +49,7 @@ devDependencies:
   '@types/jest': 26.0.24
   '@types/jsonwebtoken': 8.5.9
   '@types/koa': 2.13.5
-  '@types/lodash-es': 4.17.6
+  '@types/lodash': 4.14.186
   '@types/node': 14.18.31
   cross-env: 6.0.3
   jest: 26.6.3
@@ -1345,12 +1345,6 @@ packages:
       '@types/keygrip': 1.0.2
       '@types/koa-compose': 3.2.5
       '@types/node': 14.18.31
-    dev: true
-
-  /@types/lodash-es/4.17.6:
-    resolution: {integrity: sha512-R+zTeVUKDdfoRxpAryaQNRKk3105Rrgx2CFRClIgRGaqDTdjsm8h6IYA8ir584W3ePzkZfst5xIgDwYrlh9HLg==}
-    dependencies:
-      '@types/lodash': 4.14.186
     dev: true
 
   /@types/lodash/4.14.186:
@@ -4778,10 +4772,6 @@ packages:
       p-locate: 4.1.0
     dev: true
 
-  /lodash-es/4.17.21:
-    resolution: {integrity: sha512-mKnC+QJ9pWVzv+C4/U3rRsHapFfHvQFoFB92e52xeyGMcX6/OlIl78je1u8vePzYZSkkogMPJ2yjxxsb89cxyw==}
-    dev: false
-
   /lodash.defaults/4.2.0:
     resolution: {integrity: sha512-qjxPLHd3r5DnsdGacqOMU6pb/avJzdh9tFX2ymgoZE27BmjXrNy/y4LoaiTeAb+O3gL8AfpJGtqfX/ae2leYYQ==}
     dev: false
@@ -4828,7 +4818,6 @@ packages:
 
   /lodash/4.17.21:
     resolution: {integrity: sha512-v2kDEe57lecTulaDIuNTPy3Ry4gLGJ6Z1O3vE1krgXZNrsQ+LFTGHVxVjcXPs17LhbZVGedAJv8XZ1tvj5FvSg==}
-    dev: true
 
   /logform/2.4.2:
     resolution: {integrity: sha512-W4c9himeAwXEdZ05dQNerhFz2XG80P9Oj0loPUMV23VC2it0orMHQhJm4hdnnor3rd1HsGf6a2lPwBM1zeXHGw==}
