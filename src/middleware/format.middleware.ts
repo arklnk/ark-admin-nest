@@ -13,11 +13,14 @@ export class FormatMiddleware implements IMiddleware<Context, NextFunction> {
       // 获取控制器或者上一个中间件的结果
       const result = await next();
 
-      return {
-        msg: 'success',
-        data: result || null,
-        code: 200,
-      };
+      if (ctx.ignoreFormat)
+        return ctx.ignoreFormat
+          ? result
+          : {
+              msg: 'success',
+              data: result || null,
+              code: 200,
+            };
     };
   }
 

@@ -8,6 +8,11 @@ declare module '@midwayjs/core' {
      * 当前请求的身份验证信息
      */
     adminUser?: AdminUser;
+
+    /**
+     * 返回原生数据，不使用BaseResponse包裹
+     */
+    ignoreFormat?: boolean;
   }
 
   interface MidwayConfig {
