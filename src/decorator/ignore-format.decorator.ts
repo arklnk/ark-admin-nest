@@ -8,9 +8,7 @@ const IGNOREFORMAT_DECORATOR_KEY = 'decorator:ignore_format';
  * 忽略BaseResponse包裹的基础返回格式，用于个别接口需要自定义返回特定的格式
  */
 export function IgnoreFormat(): MethodDecorator {
-  return createCustomMethodDecorator(IGNOREFORMAT_DECORATOR_KEY, {
-    ignoreFormat: true,
-  });
+  return createCustomMethodDecorator(IGNOREFORMAT_DECORATOR_KEY, {});
 }
 
 export function registerIgnoreFormatDecorator(service: MidwayDecoratorService) {
