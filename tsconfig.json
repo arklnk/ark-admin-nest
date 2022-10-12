@@ -21,6 +21,13 @@
       "/@/*": ["./src/*"]
     }
   },
-  "include": ["src/**/*.ts", "src/**/*.d.ts", "test/**/*.d.ts", "test/**/*.ts"],
+  "include": [
+    "src/**/*.ts",
+    "src/**/*.d.ts",
+    "test/**/*.d.ts",
+    "test/**/*.ts",
+    "types/**/*.ts",
+    "types/**/*.d.ts"
+  ],
   "exclude": ["node_modules", "dist"]
 }
