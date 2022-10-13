@@ -1,5 +1,5 @@
 import { HttpException, HttpStatus } from '@nestjs/common';
-import { errorx } from '../constants/errorx';
+import { errorx } from '/@/constants/errorx';
 
 /**
  * 业务错误时可抛出该异常

@@ -12,7 +12,7 @@ import {
   RESPONSE_SUCCESS_MSG,
 } from '/@/constants/response';
 import { Reflector } from '@nestjs/core';
-import { IGNORE_RES_FORMAT_DECORATOR_KEY } from '../decorators/ignore-res-format.decorator';
+import { IGNORE_RES_FORMAT_DECORATOR_KEY } from '/@/decorators/ignore-res-format.decorator';
 
 @Injectable()
 export class ResFormatInterceptor implements NestInterceptor {
