@@ -20,12 +20,14 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
+    "@liaoliaots/nestjs-redis": "^9.0.3",
     "@nestjs/axios": "^0.1.0",
     "@nestjs/common": "^9.1.4",
     "@nestjs/config": "^2.2.0",
     "@nestjs/core": "^9.1.4",
     "@nestjs/platform-express": "^9.1.4",
     "dayjs": "^1.11.5",
+    "ioredis": "^5.2.3",
     "lodash": "^4.17.21",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.5.7"
