@@ -1,3 +1,5 @@
+import type { RedisClientOptions } from '@liaoliaots/nestjs-redis';
+
 import { ConfigService } from '@nestjs/config';
 import { Injectable } from '@nestjs/common';
 import { isNil } from 'lodash';
@@ -48,6 +50,15 @@ export class AppConfigService {
     return {
       port: this.getNumber('PORT'),
       globalPrefix: this.getString('GLOBAL_PREFIX'),
+    };
+  }
+
+  get redisConfig(): RedisClientOptions {
+    return {
+      host: this.getString('REDIS_HOST'),
+      port: this.getNumber('REDIS_PORT'),
+      password: this.getString('REDIS_PASSWORD'),
+      db: this.getNumber('REDIS_DB'),
     };
   }
 
