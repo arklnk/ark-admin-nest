@@ -47,6 +47,7 @@ export class AppConfigService {
   get appConfig() {
     return {
       port: this.getNumber('PORT'),
+      globalPrefix: this.getString('GLOBAL_PREFIX'),
     };
   }
 

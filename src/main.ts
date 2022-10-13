@@ -13,8 +13,9 @@ async function bootstrap() {
   );
 
   const configService = app.select(SharedModule).get(AppConfigService);
+  const { globalPrefix, port } = configService.appConfig;
 
-  const port = configService.appConfig.port;
+  app.setGlobalPrefix(globalPrefix);
   await app.listen(port, '0.0.0.0');
 }
 
