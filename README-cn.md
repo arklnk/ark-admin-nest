@@ -5,3 +5,7 @@
 ## 官方文档
 
 文档：[https://docs.arklnk.com](https://docs.arklnk.com)
+
+## 致谢
+
+[awesome-nest-boilerplate](https://github.com/NarHakobyan/awesome-nest-boilerplate)
