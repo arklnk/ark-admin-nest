@@ -16,15 +16,18 @@ import { AppConfigService } from './shared/services/app-config.service';
         '.env',
       ],
     }),
-    RedisModule.forRootAsync({
-      useFactory: (configService: AppConfigService) => {
-        return {
-          readyLog: true,
-          config: configService.redisConfig,
-        };
+    RedisModule.forRootAsync(
+      {
+        useFactory: (configService: AppConfigService) => {
+          return {
+            readyLog: true,
+            config: configService.redisConfig,
+          };
+        },
+        inject: [AppConfigService],
       },
-      inject: [AppConfigService],
-    }),
+      true,
+    ),
     SharedModule,
   ],
   providers: [],
