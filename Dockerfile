@@ -37,4 +37,4 @@ ENV TZ="Asia/Shanghai"
 # 安装生产环境依赖   
 RUN pnpm i --prod                         
 
-CMD ["npm", "run", "start"]
+CMD ["pnpm", "start"]
