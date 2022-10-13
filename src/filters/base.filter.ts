@@ -10,7 +10,8 @@ import {
 } from '@nestjs/common';
 import { ApiFailedException } from '/@/exceptions/api-failed.exception';
 import { AppConfigService } from '/@/shared/services/app-config.service';
-import { errorx } from '../constants/errorx';
+import { errorx } from '/@/constants/errorx';
+import { RESPONSE_ERROR_CODE } from '/@/constants/response';
 
 @Catch()
 export class BaseExceptionFilter implements ExceptionFilter {
@@ -27,7 +28,7 @@ export class BaseExceptionFilter implements ExceptionFilter {
         : HttpStatus.INTERNAL_SERVER_ERROR;
 
     // api error code
-    let apiErrorCode = 1000;
+    let apiErrorCode = RESPONSE_ERROR_CODE;
     let errorMessage =
       exception instanceof HttpException
         ? exception.message
