@@ -1,4 +1,5 @@
 import type { RedisClientOptions } from '@liaoliaots/nestjs-redis';
+import type { JwtModuleOptions } from '@nestjs/jwt';
 
 import { ConfigService } from '@nestjs/config';
 import { Injectable } from '@nestjs/common';
@@ -55,10 +56,17 @@ export class AppConfigService {
 
   get redisConfig(): RedisClientOptions {
     return {
+      keyPrefix: `${this.appConfig.globalPrefix}:`,
       host: this.getString('REDIS_HOST'),
       port: this.getNumber('REDIS_PORT'),
       password: this.getString('REDIS_PASSWORD'),
       db: this.getNumber('REDIS_DB'),
+    };
+  }
+
+  get jwtConfig(): JwtModuleOptions {
+    return {
+      secret: this.getString('JWT_SECRET'),
     };
   }
 
