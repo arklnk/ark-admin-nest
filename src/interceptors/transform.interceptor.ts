@@ -12,10 +12,10 @@ import {
   RESPONSE_SUCCESS_MSG,
 } from '/@/constants/response';
 import { Reflector } from '@nestjs/core';
-import { IGNORE_RES_FORMAT_DECORATOR_KEY } from '/@/decorators/ignore-res-format.decorator';
+import { SKIP_TRANSFORM_DECORATOR_KEY } from '/@/decorators/skip-transform.decorator';
 
 @Injectable()
-export class ResFormatInterceptor implements NestInterceptor {
+export class TransformInterceptor implements NestInterceptor {
   constructor(private readonly reflector: Reflector) {}
 
   intercept(
@@ -24,13 +24,13 @@ export class ResFormatInterceptor implements NestInterceptor {
   ): Observable<BaseResponse> {
     return next.handle().pipe(
       map((data) => {
-        // 统一处理返回结果，可使用@IgnoreResFormat()装饰器忽略默认处理
-        const isIgnore = this.reflector.get(
-          IGNORE_RES_FORMAT_DECORATOR_KEY,
-          context.getHandler(),
+        // check need transform
+        const isSkipTransform = this.reflector.getAllAndOverride<boolean>(
+          SKIP_TRANSFORM_DECORATOR_KEY,
+          [context.getHandler(), context.getClass()],
         );
 
-        if (isIgnore) return data;
+        if (isSkipTransform) return data;
 
         return {
           data,
