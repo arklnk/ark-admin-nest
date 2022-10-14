@@ -9,32 +9,6 @@ import { isNil } from 'lodash';
 export class AppConfigService {
   constructor(private configService: ConfigService) {}
 
-  getString(key: string): string {
-    const value = this.get(key);
-
-    return value.replace(/\\n/g, '\n');
-  }
-
-  getNumber(key: string): number {
-    const value = this.get(key);
-
-    try {
-      return Number(value);
-    } catch {
-      throw new Error(key + ' environment variable is not a number');
-    }
-  }
-
-  getBoolean(key: string): boolean {
-    const value = this.get(key);
-
-    try {
-      return Boolean(JSON.parse(value));
-    } catch {
-      throw new Error(key + ' environment variable is not a boolean');
-    }
-  }
-
   get nodeEnv(): string {
     return this.get('NODE_ENV');
   }
@@ -68,6 +42,36 @@ export class AppConfigService {
     return {
       secret: this.getString('JWT_SECRET'),
     };
+  }
+
+  get rootUserId(): number {
+    return this.getNumber('ROOT_USER_ID');
+  }
+
+  getString(key: string): string {
+    const value = this.get(key);
+
+    return value.replace(/\\n/g, '\n');
+  }
+
+  getNumber(key: string): number {
+    const value = this.get(key);
+
+    try {
+      return Number(value);
+    } catch {
+      throw new Error(key + ' environment variable is not a number');
+    }
+  }
+
+  getBoolean(key: string): boolean {
+    const value = this.get(key);
+
+    try {
+      return Boolean(JSON.parse(value));
+    } catch {
+      throw new Error(key + ' environment variable is not a boolean');
+    }
   }
 
   /**
