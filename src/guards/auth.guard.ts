@@ -30,7 +30,7 @@ export class Authguard implements CanActivate {
     // use the @SkipAuth() decorator to skip authentication
     const isSkipAuth = this.reflector.getAllAndOverride<boolean>(
       SKIP_AUTH_DECORATOR_KEY,
-      [context.getHandler, context.getClass],
+      [context.getHandler(), context.getClass()],
     );
     if (isSkipAuth) return true;
 
@@ -56,7 +56,7 @@ export class Authguard implements CanActivate {
     // use the @AllowAnonPermission() decorator to allow operate
     const isAllowAnonPermission = this.reflector.getAllAndOverride<boolean>(
       ALLOW_ANON_PERMISSION_DECORATOR_KEY,
-      [context.getHandler, context.getClass],
+      [context.getHandler(), context.getClass()],
     );
 
     if (isAllowAnonPermission) return true;
