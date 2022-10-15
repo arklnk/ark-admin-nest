@@ -10,6 +10,11 @@ import { AppConfigService } from './shared/services/app-config.service';
 import { BaseExceptionFilter } from './filters/base.filter';
 import { TransformInterceptor } from './interceptors/transform.interceptor';
 import { Authguard } from './guards/auth.guard';
+import {
+  HttpStatus,
+  UnprocessableEntityException,
+  ValidationPipe,
+} from '@nestjs/common';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(
@@ -35,6 +40,17 @@ async function bootstrap() {
 
   app.useGlobalGuards(
     new Authguard(reflector, jwtService, configService, redisService),
+  );
+
+  // global pipes
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      transform: true,
+      dismissDefaultMessages: true,
+      errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY,
+      exceptionFactory: (errors) => new UnprocessableEntityException(errors),
+    }),
   );
 
   // global prefix
