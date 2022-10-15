@@ -1,4 +1,4 @@
-import type { BaseResponse } from '/#/response';
+import type { BaseResponse } from '/@/interfaces/response';
 import type { Response } from 'express';
 
 import {

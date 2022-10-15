@@ -1,4 +1,4 @@
-import type { AuthUser } from '.';
+import type { AuthUser } from './auth';
 
 import 'express';
 

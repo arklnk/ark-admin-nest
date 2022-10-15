@@ -18,17 +18,9 @@
     "forceConsistentCasingInFileNames": false,
     "noFallthroughCasesInSwitch": false,
     "paths": {
-      "/@/*": ["./src/*"],
-      "/#/*": ["./types/*"]
+      "/@/*": ["./src/*"]
     }
   },
-  "include": [
-    "src/**/*.ts",
-    "src/**/*.d.ts",
-    "test/**/*.d.ts",
-    "test/**/*.ts",
-    "types/**/*.ts",
-    "types/**/*.d.ts"
-  ],
+  "include": ["src/**/*.ts", "src/**/*.d.ts", "test/**/*.d.ts", "test/**/*.ts"],
   "exclude": ["node_modules", "dist"]
 }
