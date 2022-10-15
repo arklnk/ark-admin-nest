@@ -5,6 +5,7 @@ import { ConfigModule } from '@nestjs/config';
 import { SharedModule } from './shared/shared.module';
 import { RedisModule } from '@liaoliaots/nestjs-redis';
 import { AppConfigService } from './shared/services/app-config.service';
+import { UserModule } from './modules/user/user.module';
 
 @Module({
   imports: [
@@ -29,7 +30,8 @@ import { AppConfigService } from './shared/services/app-config.service';
       true,
     ),
     SharedModule,
+    // business module
+    UserModule,
   ],
-  providers: [],
 })
 export class AppModule {}
