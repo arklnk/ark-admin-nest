@@ -30,6 +30,7 @@
     "dayjs": "^1.11.5",
     "ioredis": "^5.2.3",
     "lodash": "^4.17.21",
+    "nanoid": "^4.0.0",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.5.7",
     "svg-captcha": "^1.4.0"
