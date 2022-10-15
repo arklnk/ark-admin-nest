@@ -31,7 +31,8 @@
     "ioredis": "^5.2.3",
     "lodash": "^4.17.21",
     "reflect-metadata": "^0.1.13",
-    "rxjs": "^7.5.7"
+    "rxjs": "^7.5.7",
+    "svg-captcha": "^1.4.0"
   },
   "devDependencies": {
     "@nestjs/cli": "^9.1.4",
