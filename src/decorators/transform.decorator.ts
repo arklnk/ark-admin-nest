@@ -49,6 +49,22 @@ export function ToBoolean(): PropertyDecorator {
 }
 
 /**
+ * convert string to Date
+ */
+export function ToDate(): PropertyDecorator {
+  return Transform(
+    (params) => {
+      const value = params.value;
+
+      if (!value) return;
+
+      return new Date(value);
+    },
+    { toClassOnly: true },
+  );
+}
+
+/**
  * transforms to array, specially for query params
  */
 export function ToArray(): PropertyDecorator {
