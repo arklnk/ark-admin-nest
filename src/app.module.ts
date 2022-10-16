@@ -6,6 +6,7 @@ import { SharedModule } from './shared/shared.module';
 import { RedisModule } from '@liaoliaots/nestjs-redis';
 import { AppConfigService } from './shared/services/app-config.service';
 import { UserModule } from './modules/user/user.module';
+import { TypeOrmModule } from '@nestjs/typeorm';
 
 @Module({
   imports: [
@@ -29,6 +30,12 @@ import { UserModule } from './modules/user/user.module';
       },
       true,
     ),
+    TypeOrmModule.forRootAsync({
+      useFactory: (configService: AppConfigService) => {
+        return configService.databaseConfig;
+      },
+      inject: [AppConfigService],
+    }),
     SharedModule,
     // business module
     UserModule,

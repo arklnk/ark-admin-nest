@@ -1,9 +1,12 @@
 import type { RedisClientOptions } from '@liaoliaots/nestjs-redis';
 import type { JwtModuleOptions } from '@nestjs/jwt';
+import type { TypeOrmModuleOptions } from '@nestjs/typeorm';
+import type { LoggerOptions } from 'typeorm';
 
 import { ConfigService } from '@nestjs/config';
 import { Injectable } from '@nestjs/common';
 import { isNil } from 'lodash';
+import { TypeORMLogger } from '/@/providers/typeorm-logger';
 
 @Injectable()
 export class AppConfigService {
@@ -41,6 +44,30 @@ export class AppConfigService {
   get jwtConfig(): JwtModuleOptions {
     return {
       secret: this.getString('JWT_SECRET'),
+    };
+  }
+
+  get databaseConfig(): TypeOrmModuleOptions {
+    // LOG_ORM_ENABLE if use array must be a json string
+    let loggerOptions: LoggerOptions = this.getString(
+      'LOG_ORM_ENABLE',
+    ) as 'all';
+
+    try {
+      loggerOptions = JSON.parse(loggerOptions);
+    } catch {
+      // ignore
+    }
+
+    return {
+      type: 'mysql',
+      host: this.getString('MYSQL_HOST'),
+      port: this.getNumber('MYSQL_PORT'),
+      username: this.getString('MYSQL_USERNAME'),
+      password: this.getString('MYSQL_PASSWORD'),
+      database: this.getString('MYSQL_DATABASE'),
+      logging: loggerOptions,
+      logger: new TypeORMLogger(loggerOptions),
     };
   }
 
