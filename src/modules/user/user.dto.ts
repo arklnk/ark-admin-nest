@@ -1,14 +1,13 @@
-import { Type } from 'class-transformer';
-import { IsInt, IsOptional } from 'class-validator';
+import { NumberField } from '/@/decorators/field.decorator';
 
 export class CreateLoginCaptchaDto {
-  @IsInt()
-  @Type(() => Number)
-  @IsOptional()
+  @NumberField({
+    required: false,
+  })
   width?: number;
 
-  @IsInt()
-  @Type(() => Number)
-  @IsOptional()
+  @NumberField({
+    required: false,
+  })
   height?: number;
 }
