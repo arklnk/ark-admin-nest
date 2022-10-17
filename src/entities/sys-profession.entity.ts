@@ -6,7 +6,7 @@ export class SysProfession extends AbstractEntity {
   @PrimaryGeneratedColumn({ unsigned: true })
   id: number;
 
-  @Column({ type: 'varchar', length: 50, comment: '职称' })
+  @Column({ type: 'varchar', length: 50, unique: true, comment: '职称' })
   name: string;
 
   @Column({
