@@ -15,30 +15,30 @@ export class SysUser extends AbstractEntity {
   @Column({ type: 'varchar', length: 50, comment: '姓名' })
   username: string;
 
-  @Column({ type: 'varchar', length: 50, comment: '昵称' })
+  @Column({ type: 'varchar', length: 50, default: '', comment: '昵称' })
   nickname: string;
 
-  @Column({ type: 'varchar', length: 400, comment: '头像' })
+  @Column({ type: 'varchar', length: 400, default: '', comment: '头像' })
   avatar: string;
 
   @Column({
     type: 'tinyint',
-    length: 1,
+    width: 1,
     unsigned: true,
+    default: 0,
     comment: '性别: 0=保密 1=女 2=男',
   })
   gender: number;
 
-  @Column({ type: 'varchar', length: 50, comment: '邮件' })
+  @Column({ type: 'varchar', length: 50, default: '', comment: '邮件' })
   email: string;
 
-  @Column({ type: 'char', length: 11, comment: '手机号' })
+  @Column({ type: 'char', length: 11, default: '', comment: '手机号' })
   mobile: string;
 
   @Column({
     name: 'profession_id',
     type: 'int',
-    length: 11,
     unsigned: true,
     comment: '职称',
   })
@@ -47,7 +47,6 @@ export class SysUser extends AbstractEntity {
   @Column({
     name: 'job_id',
     type: 'int',
-    length: 11,
     unsigned: true,
     comment: '岗位',
   })
@@ -56,7 +55,6 @@ export class SysUser extends AbstractEntity {
   @Column({
     name: 'dept_id',
     type: 'int',
-    length: 11,
     unsigned: true,
     comment: '部门',
   })
@@ -67,8 +65,9 @@ export class SysUser extends AbstractEntity {
 
   @Column({
     type: 'tinyint',
-    length: 1,
+    width: 1,
     unsigned: true,
+    default: 1,
     comment: '状态: 0=禁用 1=开启',
   })
   status: number;
@@ -76,12 +75,12 @@ export class SysUser extends AbstractEntity {
   @Column({
     name: 'order_num',
     type: 'int',
-    length: 11,
     unsigned: true,
+    default: 0,
     comment: '排序值',
   })
   orderNum: number;
 
-  @Column({ type: 'varchar', length: 200 })
+  @Column({ type: 'varchar', length: 200, default: '', comment: '备注' })
   remark: string;
 }

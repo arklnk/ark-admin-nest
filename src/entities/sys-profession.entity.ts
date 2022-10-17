@@ -11,8 +11,9 @@ export class SysProfession extends AbstractEntity {
 
   @Column({
     type: 'tinyint',
-    length: 1,
+    width: 1,
     unsigned: true,
+    default: 1,
     comment: '状态: 0=禁用 1=开启',
   })
   status: number;
@@ -20,8 +21,8 @@ export class SysProfession extends AbstractEntity {
   @Column({
     name: 'order_num',
     type: 'int',
-    length: 11,
     unsigned: true,
+    default: 0,
     comment: '排序值',
   })
   orderNum: number;
