@@ -32,7 +32,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
     ),
     TypeOrmModule.forRootAsync({
       useFactory: (configService: AppConfigService) => {
-        return configService.databaseConfig;
+        return configService.typeormConfig;
       },
       inject: [AppConfigService],
     }),

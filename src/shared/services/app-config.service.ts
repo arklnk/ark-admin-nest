@@ -47,13 +47,14 @@ export class AppConfigService {
     };
   }
 
-  get databaseConfig(): TypeOrmModuleOptions {
-    // LOG_ORM_ENABLE if use array must be a json string
+  get typeormConfig(): TypeOrmModuleOptions {
+    // LOG_ORM_ENABLE config if use array must be a json string
     let loggerOptions: LoggerOptions = this.getString(
       'LOG_ORM_ENABLE',
     ) as 'all';
 
     try {
+      // if config value is all will parse error
       loggerOptions = JSON.parse(loggerOptions);
     } catch {
       // ignore
@@ -68,9 +69,13 @@ export class AppConfigService {
       database: this.getString('MYSQL_DATABASE'),
       logging: loggerOptions,
       logger: new TypeORMLogger(loggerOptions),
+      autoLoadEntities: true,
     };
   }
 
+  /**
+   * rootadmin user id
+   */
   get rootUserId(): number {
     return this.getNumber('ROOT_USER_ID');
   }
