@@ -49,9 +49,7 @@ export class AppConfigService {
 
   get typeormConfig(): TypeOrmModuleOptions {
     // LOG_ORM_ENABLE config if use array must be a json string
-    let loggerOptions: LoggerOptions = this.getString(
-      'LOG_ORM_ENABLE',
-    ) as 'all';
+    let loggerOptions: LoggerOptions = this.getString('DB_LOGGING') as 'all';
 
     try {
       // if config value is all will parse error
@@ -62,11 +60,11 @@ export class AppConfigService {
 
     return {
       type: 'mysql',
-      host: this.getString('MYSQL_HOST'),
-      port: this.getNumber('MYSQL_PORT'),
-      username: this.getString('MYSQL_USERNAME'),
-      password: this.getString('MYSQL_PASSWORD'),
-      database: this.getString('MYSQL_DATABASE'),
+      host: this.getString('DB_HOST'),
+      port: this.getNumber('DB_PORT'),
+      username: this.getString('DB_USERNAME'),
+      password: this.getString('DB_PASSWORD'),
+      database: this.getString('DB_DATABASE'),
       logging: loggerOptions,
       logger: new TypeORMLogger(loggerOptions),
       autoLoadEntities: true,
