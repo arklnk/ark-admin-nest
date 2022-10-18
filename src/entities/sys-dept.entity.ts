@@ -1,11 +1,8 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity } from 'typeorm';
 import { AbstractEntity } from '/@/common/abstract.entity';
 
 @Entity({ name: 'sys_dept' })
 export class SysDept extends AbstractEntity {
-  @PrimaryGeneratedColumn({ unsigned: true })
-  id: number;
-
   @Column({ name: 'parent_id', type: 'int', unsigned: true, comment: '父级id' })
   parentId: number;
 

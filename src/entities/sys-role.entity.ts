@@ -1,11 +1,8 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity } from 'typeorm';
 import { AbstractEntity } from '/@/common/abstract.entity';
 
 @Entity({ name: 'sys_role' })
 export class SysRole extends AbstractEntity {
-  @PrimaryGeneratedColumn({ unsigned: true })
-  id: number;
-
   @Column({
     name: 'parent_id',
     type: 'int',

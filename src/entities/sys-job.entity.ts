@@ -1,11 +1,8 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity } from 'typeorm';
 import { AbstractEntity } from '/@/common/abstract.entity';
 
 @Entity({ name: 'sys_job' })
 export class SysJob extends AbstractEntity {
-  @PrimaryGeneratedColumn({ unsigned: true })
-  id: number;
-
   @Column({ type: 'varchar', length: 50, unique: true, comment: '岗位名称' })
   name: string;
 

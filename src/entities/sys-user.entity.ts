@@ -1,11 +1,8 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import { Column, Entity } from 'typeorm';
 import { AbstractEntity } from '/@/common/abstract.entity';
 
 @Entity({ name: 'sys_user' })
 export class SysUser extends AbstractEntity {
-  @PrimaryGeneratedColumn({ unsigned: true })
-  id: number;
-
   @Column({ type: 'varchar', length: 50, comment: '账号' })
   account: string;
 
