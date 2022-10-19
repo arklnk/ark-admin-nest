@@ -36,3 +36,7 @@ lerna-debug.log*
 
 # Dev data
 /data/
+
+# Local env
+.env.local
+.env.*.local
