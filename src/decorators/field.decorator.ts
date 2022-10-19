@@ -72,8 +72,8 @@ export function NumberField(
 }
 
 interface IStringFieldOptions extends IOptionalOptions {
-  min?: number;
-  max?: number;
+  minLength?: number;
+  maxLength?: number;
   lowerCase?: boolean;
   upperCase?: boolean;
 }
@@ -82,14 +82,20 @@ export function StringField(
 ): PropertyDecorator {
   const decorators = [IsNotEmpty(), IsString(), ToTrim()];
 
-  const { min, max, lowerCase, upperCase, required = true } = options;
+  const {
+    minLength,
+    maxLength,
+    lowerCase,
+    upperCase,
+    required = true,
+  } = options;
 
-  if (isNumber(min)) {
-    decorators.push(MinLength(min));
+  if (isNumber(minLength)) {
+    decorators.push(MinLength(minLength));
   }
 
-  if (isNumber(max)) {
-    decorators.push(MaxLength(max));
+  if (isNumber(maxLength)) {
+    decorators.push(MaxLength(maxLength));
   }
 
   if (lowerCase) {
