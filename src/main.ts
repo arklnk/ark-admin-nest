@@ -11,6 +11,7 @@ import { BaseExceptionFilter } from './filters/base.filter';
 import { TransformInterceptor } from './interceptors/transform.interceptor';
 import { Authguard } from './guards/auth.guard';
 import {
+  ClassSerializerInterceptor,
   HttpStatus,
   UnprocessableEntityException,
   ValidationPipe,
@@ -32,7 +33,10 @@ async function bootstrap() {
   app.useGlobalFilters(new BaseExceptionFilter(configService));
 
   // global interceptors
-  app.useGlobalInterceptors(new TransformInterceptor(reflector));
+  app.useGlobalInterceptors(
+    new ClassSerializerInterceptor(reflector),
+    new TransformInterceptor(reflector),
+  );
 
   // global guards
   const jwtService = app.select(SharedModule).get(JwtService);
