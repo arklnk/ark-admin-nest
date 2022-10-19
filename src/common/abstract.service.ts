@@ -1,5 +1,3 @@
-import type { EntityTarget } from 'typeorm';
-
 import { InjectDataSource, InjectEntityManager } from '@nestjs/typeorm';
 import { DataSource, EntityManager } from 'typeorm';
 
@@ -31,11 +29,11 @@ export abstract class AbstractService {
   /**
    * Get entity table name in the database
    */
-  protected getTableName(target: EntityTarget<any>): string {
+  protected getTableName(target: any): string {
     const tableName = this.dataSource.getMetadata(target).tableName;
 
     if (!tableName) {
-      throw new Error('target is not marked as entity class');
+      throw new Error('target is not marked as entity');
     }
 
     return tableName;
