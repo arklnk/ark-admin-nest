@@ -43,9 +43,10 @@ export class AppConfigService {
     };
   }
 
-  get jwtConfig(): JwtModuleOptions {
+  get jwtConfig(): JwtModuleOptions & { expires?: number } {
     return {
       secret: this.getString('JWT_SECRET'),
+      expires: this.getNumber('JWT_EXPIRES'),
     };
   }
 
