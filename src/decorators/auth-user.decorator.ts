@@ -1,6 +1,7 @@
 import type { Request } from 'express';
+import type { ExecutionContext } from '@nestjs/common';
 
-import { createParamDecorator, ExecutionContext } from '@nestjs/common';
+import { createParamDecorator } from '@nestjs/common';
 
 /**
  * 快速获取已通过授权的用户信息，而非手动通过Request获取
