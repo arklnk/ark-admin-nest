@@ -13,7 +13,10 @@ import { JwtService } from '@nestjs/jwt';
 import { isEmpty } from 'lodash';
 import { AppConfigService } from '/@/shared/services/app-config.service';
 import { RedisService } from '@liaoliaots/nestjs-redis';
-import { UserPermMenuCachePrefix } from '/@/constants/cache';
+import {
+  UserOnlineCachePrefix,
+  UserPermMenuCachePrefix,
+} from '/@/constants/cache';
 import { ApiFailedException } from '/@/exceptions/api-failed.exception';
 
 @Injectable()
@@ -51,6 +54,15 @@ export class Authguard implements CanActivate {
     // check the jwt payload is valid
     if (isEmpty(request.authUser)) {
       throw new Error('jwt payload is invalid');
+    }
+
+    // check is expired
+    const cacheToken = await this.redisService
+      .getClient()
+      .get(`${UserOnlineCachePrefix}${request.authUser.uid}`);
+
+    if (isEmpty(cacheToken) || cacheToken !== token) {
+      throw new UnauthorizedException();
     }
 
     // use the @AllowAnonPermission() decorator to allow operate

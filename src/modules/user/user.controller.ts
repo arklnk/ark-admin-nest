@@ -1,6 +1,7 @@
-import { Controller, Get, Query } from '@nestjs/common';
-import { CreateLoginCaptchaDto } from './user.dto';
+import { Body, Controller, Get, Post, Query } from '@nestjs/common';
+import { UserLoginCaptchaDto, UserLoginDto } from './user.dto';
 import { UserService } from './user.service';
+import { Ip, Uri } from '/@/decorators/http.decorator';
 import { SkipAuth } from '/@/decorators/skip-auth.decorator';
 
 @Controller('user')
@@ -9,10 +10,17 @@ export class UserController {
 
   @Get('login/captcha')
   @SkipAuth()
-  async login(@Query() option: CreateLoginCaptchaDto) {
-    return await this.userService.createLoginCaptcha(
-      option.width,
-      option.height,
-    );
+  async loginCaptcha(@Query() query: UserLoginCaptchaDto) {
+    return await this.userService.createLoginCaptcha(query.width, query.height);
+  }
+
+  @Post('login')
+  @SkipAuth()
+  async login(
+    @Body() body: UserLoginDto,
+    @Ip() ip: string,
+    @Uri() uri: string,
+  ) {
+    return await this.userService.createLoginToken(body, ip, uri);
   }
 }

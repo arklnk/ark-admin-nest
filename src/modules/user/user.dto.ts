@@ -1,6 +1,6 @@
-import { NumberField } from '/@/decorators/field.decorator';
+import { NumberField, StringField } from '/@/decorators/field.decorator';
 
-export class CreateLoginCaptchaDto {
+export class UserLoginCaptchaDto {
   @NumberField({
     required: false,
   })
@@ -10,4 +10,20 @@ export class CreateLoginCaptchaDto {
     required: false,
   })
   height?: number;
+}
+
+export class UserLoginDto {
+  @StringField()
+  captchaId: string;
+
+  @StringField({
+    lowerCase: true,
+  })
+  verifyCode: string;
+
+  @StringField()
+  account: string;
+
+  @StringField()
+  password: string;
 }
