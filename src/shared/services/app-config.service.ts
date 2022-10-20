@@ -28,6 +28,8 @@ export class AppConfigService {
     return {
       port: this.getNumber('PORT'),
       globalPrefix: this.getString('GLOBAL_PREFIX'),
+      rootUserId: this.getNumber('ROOT_USER_ID'),
+      userPwdSalt: this.getString('USER_PWD_SALT'),
     };
   }
 
@@ -69,13 +71,6 @@ export class AppConfigService {
       logger: new TypeORMLogger(loggerOptions),
       autoLoadEntities: true,
     };
-  }
-
-  /**
-   * rootadmin user id
-   */
-  get rootUserId(): number {
-    return this.getNumber('ROOT_USER_ID');
   }
 
   getString(key: string): string {
