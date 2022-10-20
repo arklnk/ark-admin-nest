@@ -18,6 +18,7 @@ import {
   UserPermMenuCachePrefix,
 } from '/@/constants/cache';
 import { ApiFailedException } from '/@/exceptions/api-failed.exception';
+import { ErrorEnum } from '/@/constants/errorx';
 
 @Injectable()
 export class Authguard implements CanActivate {
@@ -79,7 +80,7 @@ export class Authguard implements CanActivate {
       .get(`${UserPermMenuCachePrefix}${request.authUser.uid}`);
 
     if (isEmpty(permmenu)) {
-      throw new ApiFailedException(1005);
+      throw new ApiFailedException(ErrorEnum.NotPermMenuErrorCode);
     }
 
     const path = request.path;
@@ -87,7 +88,7 @@ export class Authguard implements CanActivate {
     const prefixUrl = `/${this.configService.appConfig.globalPrefix}/`;
 
     if (!permmenuArr.includes(path.replace(prefixUrl, ''))) {
-      throw new ApiFailedException(1005);
+      throw new ApiFailedException(ErrorEnum.NotPermMenuErrorCode);
     }
 
     // can active

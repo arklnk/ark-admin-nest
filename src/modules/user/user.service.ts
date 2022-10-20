@@ -21,6 +21,7 @@ import { Repository } from 'typeorm';
 import { encryptByMD5 } from '/@/common/utils/cipher';
 import { SysLog } from '/@/entities/sys-log.entity';
 import { StatusTypeEnum, SysLogTypeEnum } from '/@/constants/type';
+import { ErrorEnum } from '/@/constants/errorx';
 
 @Injectable()
 export class UserService extends AbstractService {
@@ -77,7 +78,7 @@ export class UserService extends AbstractService {
     const captchaKey = `${UserLoginCaptchaCachePrefix}${dto.captchaId}`;
     const captcha = await this.redisService.getClient().get(captchaKey);
     if (isEmpty(captcha) || dto.verifyCode !== captcha) {
-      throw new ApiFailedException(1002);
+      throw new ApiFailedException(ErrorEnum.CaptchaErrorCode);
     }
 
     // find user by account
@@ -87,7 +88,7 @@ export class UserService extends AbstractService {
     });
 
     if (isEmpty(user)) {
-      throw new ApiFailedException(1003);
+      throw new ApiFailedException(ErrorEnum.AccountErrorCode);
     }
 
     // check password
@@ -96,12 +97,12 @@ export class UserService extends AbstractService {
     );
 
     if (user.password !== encryPwd) {
-      throw new ApiFailedException(1004);
+      throw new ApiFailedException(ErrorEnum.PasswordErrorCode);
     }
 
     // check user status
     if (user.status === StatusTypeEnum.FailureOrDisable) {
-      throw new ApiFailedException(1021);
+      throw new ApiFailedException(ErrorEnum.AccountDisableErrorCode);
     }
 
     // auth payload
