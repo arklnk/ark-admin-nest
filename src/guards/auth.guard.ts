@@ -70,8 +70,7 @@ export class Authguard implements CanActivate {
       throw new ApiFailedException(1005);
     }
 
-    const url = request.url;
-    const path = url.split('?')[0];
+    const path = request.path;
     const permmenuArr: string[] = JSON.parse(permmenu);
     const prefixUrl = `/${this.configService.appConfig.globalPrefix}/`;
 
