@@ -28,7 +28,7 @@ export class AppConfigService {
     return {
       port: this.getNumber('PORT'),
       globalPrefix: this.getString('GLOBAL_PREFIX'),
-      rootUserId: this.getNumber('ROOT_USER_ID'),
+      rootRoleId: this.getNumber('ROOT_ROLE_ID'),
       userPwdSalt: this.getString('USER_PWD_SALT'),
     };
   }
@@ -61,6 +61,9 @@ export class AppConfigService {
       // ignore
     }
 
+    // entities load
+    const entities = [__dirname + '/../../entities/**/*.entity{.ts,.js}'];
+
     return {
       type: 'mysql',
       host: this.getString('DB_HOST'),
@@ -70,7 +73,7 @@ export class AppConfigService {
       database: this.getString('DB_DATABASE'),
       logging: loggerOptions,
       logger: new TypeORMLogger(loggerOptions),
-      autoLoadEntities: true,
+      entities,
     };
   }
 
