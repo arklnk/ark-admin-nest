@@ -1,5 +1,5 @@
 import type { IUserLogin, IUserLoginCaptcha } from './user.interface';
-import type { AuthUser } from '/@/interfaces/auth';
+import type { IAuthUser } from '/@/interfaces/auth';
 
 import { RedisService } from '@liaoliaots/nestjs-redis';
 import { Injectable } from '@nestjs/common';
@@ -106,7 +106,7 @@ export class UserService extends AbstractService {
     }
 
     // auth payload
-    const payload: AuthUser = { uid: user.id };
+    const payload: IAuthUser = { uid: user.id };
     const token = this.jwtService.sign(payload);
     const onlineKey = `${UserOnlineCachePrefix}${user.id}`;
 
@@ -133,5 +133,9 @@ export class UserService extends AbstractService {
     return {
       token,
     };
+  }
+
+  async getUserPermMenu(id: number) {
+    console.log(id);
   }
 }

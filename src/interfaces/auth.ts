@@ -1,6 +1,6 @@
 /**
  * JsonWebToken payload object
  */
-export interface AuthUser {
+export interface IAuthUser {
   uid: number;
 }
