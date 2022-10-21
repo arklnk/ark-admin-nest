@@ -1,7 +1,7 @@
-import dayjs from 'dayjs';
+import { formatToDateTime } from './common/utils/date';
 
 Date.prototype.toJSON = function () {
-  return dayjs(this).format('YYYY-MM-DD HH:mm:ss');
+  return formatToDateTime(this);
 };
 
 Array.prototype.toPage = function (pagination) {
