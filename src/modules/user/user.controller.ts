@@ -1,6 +1,7 @@
 import { Body, Controller, Get, Post, Query } from '@nestjs/common';
 import { UserLoginCaptchaDto, UserLoginDto } from './user.dto';
 import { UserService } from './user.service';
+import { AllowAnonPermission } from '/@/decorators/allow-anon-permission.decorator';
 import { AuthUser } from '/@/decorators/auth-user.decorator';
 import { Ip, Uri } from '/@/decorators/http.decorator';
 import { SkipAuth } from '/@/decorators/skip-auth.decorator';
@@ -26,7 +27,7 @@ export class UserController {
   }
 
   @Get('permmenu')
-  @SkipAuth()
+  @AllowAnonPermission()
   async permmenu(@AuthUser('uid') uid: number) {
     return await this.userService.getUserPermMenu(uid);
   }

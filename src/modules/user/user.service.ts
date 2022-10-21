@@ -1,4 +1,8 @@
-import type { IUserLogin, IUserLoginCaptcha } from './user.interface';
+import type {
+  IUserLogin,
+  IUserLoginCaptcha,
+  IUserPermMenu,
+} from './user.interface';
 import type { IAuthUser } from '/@/interfaces/auth';
 
 import { RedisService } from '@liaoliaots/nestjs-redis';
@@ -13,15 +17,18 @@ import {
 import { AbstractService } from '/@/common/abstract.service';
 import { UserLoginDto } from './user.dto';
 import { AppConfigService } from '/@/shared/services/app-config.service';
-import { isEmpty, omit } from 'lodash';
+import { isEmpty, omit, uniq } from 'lodash';
 import { ApiFailedException } from '/@/exceptions/api-failed.exception';
-import { InjectRepository } from '@nestjs/typeorm';
 import { SysUser } from '/@/entities/sys-user.entity';
-import { Repository } from 'typeorm';
 import { encryptByMD5 } from '/@/common/utils/cipher';
 import { SysLog } from '/@/entities/sys-log.entity';
-import { StatusTypeEnum, SysLogTypeEnum } from '/@/constants/type';
+import {
+  StatusTypeEnum,
+  SysLogTypeEnum,
+  SysMenuTypeEnum,
+} from '/@/constants/type';
 import { ErrorEnum } from '/@/constants/errorx';
+import { SysPermMenu } from '/@/entities/sys-perm-menu.entity';
 
 @Injectable()
 export class UserService extends AbstractService {
@@ -29,10 +36,6 @@ export class UserService extends AbstractService {
     private jwtService: JwtService,
     private redisService: RedisService,
     private configService: AppConfigService,
-    @InjectRepository(SysUser)
-    private userRepo: Repository<SysUser>,
-    @InjectRepository(SysLog)
-    private logRepo: Repository<SysLog>,
   ) {
     super();
   }
@@ -82,7 +85,7 @@ export class UserService extends AbstractService {
     }
 
     // find user by account
-    const user = await this.userRepo.findOne({
+    const user = await this.entityManager.findOne(SysUser, {
       select: ['account', 'password', 'id', 'status'],
       where: { account: dto.account },
     });
@@ -121,7 +124,7 @@ export class UserService extends AbstractService {
       );
 
     // save login log
-    await this.logRepo.insert({
+    await this.entityManager.insert(SysLog, {
       userId: user.id,
       status: StatusTypeEnum.SuccessfulOrEnable,
       type: SysLogTypeEnum.Login,
@@ -135,7 +138,46 @@ export class UserService extends AbstractService {
     };
   }
 
-  async getUserPermMenu(id: number) {
-    console.log(id);
+  async getUserPermMenu(uid: number): Promise<IUserPermMenu> {
+    const token = await this.redisService
+      .getClient()
+      .get(`${UserOnlineCachePrefix}${uid}`);
+
+    if (isEmpty(token)) {
+      throw new ApiFailedException(ErrorEnum.AuthErrorCode);
+    }
+
+    const user = await this.entityManager.findOne(SysUser, {
+      where: { id: uid },
+    });
+
+    // is super admin
+    if (user.roleIds.includes(this.configService.appConfig.rootRoleId)) {
+      const pms = await this.entityManager.find(SysPermMenu);
+      return this.splitPermAndMenu(pms);
+    }
+
+    return {
+      menus: [],
+      perms: [],
+    };
+  }
+
+  private splitPermAndMenu(permmenu: SysPermMenu[]): IUserPermMenu {
+    const menus: IUserPermMenu['menus'] = [];
+    const perms: string[] = [];
+
+    permmenu.forEach((e) => {
+      if (e.type === SysMenuTypeEnum.Permission) {
+        perms.push(...(JSON.parse(e.perms) as string[]));
+      } else {
+        menus.push(e);
+      }
+    });
+
+    return {
+      menus,
+      perms: uniq(perms),
+    };
   }
 }

@@ -21,3 +21,20 @@ export enum SysLogTypeEnum {
    */
   Operate = 2,
 }
+
+export enum SysMenuTypeEnum {
+  /**
+   * 目录
+   */
+  Catalogue = 0,
+
+  /**
+   * 菜单
+   */
+  Menu = 1,
+
+  /**
+   * 权限
+   */
+  Permission = 2,
+}
