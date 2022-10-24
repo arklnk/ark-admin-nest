@@ -7,6 +7,7 @@ import { RedisModule } from '@liaoliaots/nestjs-redis';
 import { AppConfigService } from './shared/services/app-config.service';
 import { UserModule } from './modules/user/user.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { SystemModule } from './modules/system/system.module';
 
 @Module({
   imports: [
@@ -39,6 +40,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
     SharedModule,
     // business module
     UserModule,
+    SystemModule,
   ],
 })
 export class AppModule {}
