@@ -31,4 +31,10 @@ export class UserController {
   async permmenu(@AuthUser('uid') uid: number) {
     return await this.userService.getUserPermMenu(uid);
   }
+
+  @Post('logout')
+  @AllowAnonPermission()
+  async logout(@AuthUser('uid') uid: number) {
+    await this.userService.userLogout(uid);
+  }
 }

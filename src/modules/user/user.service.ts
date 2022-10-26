@@ -280,4 +280,14 @@ export class UserService extends AbstractService {
       perms: uniq(perms),
     });
   }
+
+  async userLogout(uid: number): Promise<void> {
+    const keys = [
+      UserOnlineCachePrefix,
+      UserPermCachePrefix,
+      UserRoleCahcePrefix,
+    ].map((e) => `${e}${uid}`);
+
+    await this.redisService.getClient().del(keys);
+  }
 }
