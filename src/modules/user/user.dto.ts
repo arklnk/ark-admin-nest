@@ -1,5 +1,4 @@
 import type { SysPermMenu } from '/@/entities/sys-perm-menu.entity';
-
 import { NumberField, StringField } from '/@/decorators/field.decorator';
 
 export class UserLoginCaptchaReqDto {

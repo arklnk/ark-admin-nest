@@ -290,4 +290,25 @@ export class UserService extends AbstractService {
 
     await this.redisService.getClient().del(keys);
   }
+
+  async getUserProfileInfo(uid: number): Promise<SysUser> {
+    const user = await this.entityManager.findOne(SysUser, {
+      select: [
+        'username',
+        'nickname',
+        'gender',
+        'email',
+        'mobile',
+        'remark',
+        'avatar',
+      ],
+      where: { id: uid },
+    });
+
+    if (isEmpty(user)) {
+      throw new Error(`user id: ${uid} does not exist`);
+    }
+
+    return user;
+  }
 }
