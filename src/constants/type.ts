@@ -1,13 +1,15 @@
 export enum StatusTypeEnum {
   /**
-   * 失败或禁用
+   * 失败、禁用
    */
-  FailureOrDisable = 0,
+  Failure = 0,
+  Disable = 0,
 
   /**
-   * 成功或启用
+   * 成功、启用
    */
-  SuccessfulOrEnable = 1,
+  Successful = 1,
+  Enable = 1,
 }
 
 export enum SysLogTypeEnum {
