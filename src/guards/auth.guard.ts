@@ -13,10 +13,7 @@ import { JwtService } from '@nestjs/jwt';
 import { isEmpty } from 'lodash';
 import { AppConfigService } from '/@/shared/services/app-config.service';
 import { RedisService } from '@liaoliaots/nestjs-redis';
-import {
-  UserOnlineCachePrefix,
-  UserPermMenuCachePrefix,
-} from '/@/constants/cache';
+import { UserOnlineCachePrefix, UserPermCachePrefix } from '/@/constants/cache';
 import { ApiFailedException } from '/@/exceptions/api-failed.exception';
 import { ErrorEnum } from '/@/constants/errorx';
 
@@ -77,7 +74,7 @@ export class Authguard implements CanActivate {
     // check current user have the operation permission
     const permmenu = await this.redisService
       .getClient()
-      .get(`${UserPermMenuCachePrefix}${request.authUser.uid}`);
+      .get(`${UserPermCachePrefix}${request.authUser.uid}`);
 
     if (isEmpty(permmenu)) {
       throw new ApiFailedException(ErrorEnum.NotPermMenuErrorCode);
