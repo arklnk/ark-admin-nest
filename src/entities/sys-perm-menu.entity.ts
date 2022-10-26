@@ -2,7 +2,7 @@ import { Column, Entity } from 'typeorm';
 import { AbstractEntity } from '/@/common/abstract.entity';
 
 @Entity({ name: 'sys_perm_menu' })
-export class SysPermMenu extends AbstractEntity {
+export class SysPermMenuEntity extends AbstractEntity {
   @Column({
     name: 'parent_id',
     type: 'int',

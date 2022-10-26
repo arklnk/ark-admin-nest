@@ -1,4 +1,4 @@
-import type { SysPermMenu } from '/@/entities/sys-perm-menu.entity';
+import type { SysPermMenuEntity } from '/@/entities/sys-perm-menu.entity';
 import { NumberField, StringField } from '/@/decorators/field.decorator';
 
 export class UserLoginCaptchaReqDto {
@@ -34,7 +34,7 @@ export class UserLoginReqDto {
 //-------------------------------------------------------------------------------
 
 export class UserPermMenuResDto {
-  menus: SysPermMenu[];
+  menus: SysPermMenuEntity[];
   perms: string[];
 
   constructor(dto: UserPermMenuResDto) {

@@ -1,3 +1,5 @@
-import type { SysRole } from '/@/entities/sys-role.entity';
+import type { SysRoleEntity } from '/@/entities/sys-role.entity';
 
-export type SysRoleTreeNode = SysRole & { children?: SysRole[] };
+export type SysRoleEntityTreeNode = SysRoleEntity & {
+  children?: SysRoleEntity[];
+};

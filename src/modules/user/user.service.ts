@@ -1,4 +1,4 @@
-import type { SysRoleTreeNode } from './user.interface';
+import type { SysRoleEntityTreeNode } from './user.interface';
 import type { IAuthUser } from '/@/interfaces/auth';
 
 import { RedisService } from '@liaoliaots/nestjs-redis';
@@ -22,17 +22,17 @@ import {
 import { AppConfigService } from '/@/shared/services/app-config.service';
 import { isEmpty, omit, uniq } from 'lodash';
 import { ApiFailedException } from '/@/exceptions/api-failed.exception';
-import { SysUser } from '/@/entities/sys-user.entity';
+import { SysUserEntity } from '/@/entities/sys-user.entity';
 import { encryptByMD5 } from '/@/common/utils/cipher';
-import { SysLog } from '/@/entities/sys-log.entity';
+import { SysLogEntity } from '/@/entities/sys-log.entity';
 import {
   StatusTypeEnum,
   SysLogTypeEnum,
   SysMenuTypeEnum,
 } from '/@/constants/type';
 import { ErrorEnum } from '/@/constants/errorx';
-import { SysPermMenu } from '/@/entities/sys-perm-menu.entity';
-import { SysRole } from '/@/entities/sys-role.entity';
+import { SysPermMenuEntity } from '/@/entities/sys-perm-menu.entity';
+import { SysRoleEntity } from '/@/entities/sys-role.entity';
 import { In } from 'typeorm';
 
 @Injectable()
@@ -90,7 +90,7 @@ export class UserService extends AbstractService {
     }
 
     // find user by account
-    const user = await this.entityManager.findOne(SysUser, {
+    const user = await this.entityManager.findOne(SysUserEntity, {
       select: ['account', 'password', 'id', 'status'],
       where: { account: dto.account },
     });
@@ -124,7 +124,7 @@ export class UserService extends AbstractService {
       .set(onlineKey, token, 'EX', this.configService.jwtConfig.expires);
 
     // save login log
-    await this.entityManager.insert(SysLog, {
+    await this.entityManager.insert(SysLogEntity, {
       userId: user.id,
       status: StatusTypeEnum.Successful,
       type: SysLogTypeEnum.Login,
@@ -147,13 +147,13 @@ export class UserService extends AbstractService {
       throw new ApiFailedException(ErrorEnum.AuthErrorCode);
     }
 
-    const user = await this.entityManager.findOne(SysUser, {
+    const user = await this.entityManager.findOne(SysUserEntity, {
       where: { id: uid },
     });
 
     // super admin directly find all permission and menu
     if (user.roleIds.includes(this.configService.appConfig.rootRoleId)) {
-      const pms = await this.entityManager.find(SysPermMenu, {
+      const pms = await this.entityManager.find(SysPermMenuEntity, {
         order: {
           orderNum: 'DESC',
         },
@@ -181,7 +181,7 @@ export class UserService extends AbstractService {
 
       do {
         const roleids = await this.entityManager
-          .createQueryBuilder(SysRole, 'role')
+          .createQueryBuilder(SysRoleEntity, 'role')
           .select(['role.id'])
           .where('FIND_IN_SET(parent_id, :ids)', {
             ids: lastQueryIds.join(','),
@@ -204,18 +204,21 @@ export class UserService extends AbstractService {
     }
 
     // find relation role info
-    const roles = await this.entityManager.find<SysRoleTreeNode>(SysRole, {
-      select: ['status', 'id', 'parentId', 'permmenuIds'],
-      where: {
-        id: In(allSubRoles),
+    const roles = await this.entityManager.find<SysRoleEntityTreeNode>(
+      SysRoleEntity,
+      {
+        select: ['status', 'id', 'parentId', 'permmenuIds'],
+        where: {
+          id: In(allSubRoles),
+        },
       },
-    });
+    );
 
     // filter disabled roles.
     // if the parent is disabled, then all children are also disabled
     // list to tree to delete disable node
-    const rolesTree: SysRoleTreeNode[] = [];
-    const nodeMap = new Map<number, SysRoleTreeNode>();
+    const rolesTree: SysRoleEntityTreeNode[] = [];
+    const nodeMap = new Map<number, SysRoleEntityTreeNode>();
 
     for (const r of roles) {
       r.children = r.children || [];
@@ -243,7 +246,7 @@ export class UserService extends AbstractService {
     permmenuIds = uniq(permmenuIds);
 
     // find permission and menu by role id
-    const pms = await this.entityManager.find(SysPermMenu, {
+    const pms = await this.entityManager.find(SysPermMenuEntity, {
       where: {
         id: In(permmenuIds),
       },
@@ -263,8 +266,8 @@ export class UserService extends AbstractService {
   /**
    * grouping permission and menu
    */
-  private splitPermAndMenu(permmenu: SysPermMenu[]): UserPermMenuResDto {
-    const menus: SysPermMenu[] = [];
+  private splitPermAndMenu(permmenu: SysPermMenuEntity[]): UserPermMenuResDto {
+    const menus: SysPermMenuEntity[] = [];
     const perms: string[] = [];
 
     permmenu.forEach((e) => {
@@ -291,8 +294,8 @@ export class UserService extends AbstractService {
     await this.redisService.getClient().del(keys);
   }
 
-  async getUserProfileInfo(uid: number): Promise<SysUser> {
-    const user = await this.entityManager.findOne(SysUser, {
+  async getUserProfileInfo(uid: number): Promise<SysUserEntity> {
+    const user = await this.entityManager.findOne(SysUserEntity, {
       select: [
         'username',
         'nickname',

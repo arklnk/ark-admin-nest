@@ -2,7 +2,7 @@ import { Column, Entity } from 'typeorm';
 import { AbstractEntity } from '/@/common/abstract.entity';
 
 @Entity({ name: 'sys_log' })
-export class SysLog extends AbstractEntity {
+export class SysLogEntity extends AbstractEntity {
   @Column({ name: 'user_id', type: 'int', unsigned: true, comment: '操作账号' })
   userId: number;
 

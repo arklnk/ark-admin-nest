@@ -2,7 +2,7 @@ import { Column, Entity } from 'typeorm';
 import { AbstractEntity } from '/@/common/abstract.entity';
 
 @Entity({ name: 'sys_role' })
-export class SysRole extends AbstractEntity {
+export class SysRoleEntity extends AbstractEntity {
   @Column({
     name: 'parent_id',
     type: 'int',

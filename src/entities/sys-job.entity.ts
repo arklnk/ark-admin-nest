@@ -2,7 +2,7 @@ import { Column, Entity } from 'typeorm';
 import { AbstractEntity } from '/@/common/abstract.entity';
 
 @Entity({ name: 'sys_job' })
-export class SysJob extends AbstractEntity {
+export class SysJobEntity extends AbstractEntity {
   @Column({ type: 'varchar', length: 50, unique: true, comment: '岗位名称' })
   name: string;
 
