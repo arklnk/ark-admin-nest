@@ -168,7 +168,6 @@ export class UserService extends AbstractService {
     }
 
     // role is tree struct, must find all sub role ids
-    let lastQueryIds: number[] = [].concat(user.roleIds);
     let allSubRoles: number[] = [];
 
     const roleIdCache = await this.redisService
@@ -177,6 +176,7 @@ export class UserService extends AbstractService {
 
     // check whether there is a cache and read from the cache
     if (isEmpty(roleIdCache)) {
+      let lastQueryIds: number[] = [].concat(user.roleIds);
       allSubRoles = [].concat(user.roleIds);
 
       do {
