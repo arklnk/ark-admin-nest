@@ -30,12 +30,8 @@ export abstract class AbstractService {
    * Get entity table name in the database
    */
   protected getTableName(target: any): string {
-    const tableName = this.dataSource.getMetadata(target).tableName;
-
-    if (!tableName) {
-      throw new Error('target is not marked as entity');
-    }
-
-    return tableName;
+    // typeorm will check target and throw error
+    const meta = this.dataSource.getMetadata(target);
+    return meta.tableName;
   }
 }
