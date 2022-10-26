@@ -1,6 +1,8 @@
+import type { SysPermMenu } from '/@/entities/sys-perm-menu.entity';
+
 import { NumberField, StringField } from '/@/decorators/field.decorator';
 
-export class UserLoginCaptchaDto {
+export class UserLoginCaptchaReqDto {
   @NumberField({
     required: false,
   })
@@ -12,7 +14,7 @@ export class UserLoginCaptchaDto {
   height?: number;
 }
 
-export class UserLoginDto {
+export class UserLoginReqDto {
   @StringField()
   captchaId: string;
 
@@ -26,4 +28,36 @@ export class UserLoginDto {
 
   @StringField()
   password: string;
+}
+
+//-------------------------------------------------------------------------------
+//------------------------------------- res -------------------------------------
+//-------------------------------------------------------------------------------
+
+export class UserPermMenuResDto {
+  menus: SysPermMenu[];
+  perms: string[];
+
+  constructor(dto: UserPermMenuResDto) {
+    this.menus = dto.menus;
+    this.perms = dto.perms;
+  }
+}
+
+export class UserLoginCaptchaResDto {
+  img: string;
+  id: string;
+
+  constructor(dto: UserLoginCaptchaResDto) {
+    this.img = dto.img;
+    this.id = dto.id;
+  }
+}
+
+export class UserLoginResDto {
+  token: string;
+
+  constructor(dto: UserLoginResDto) {
+    this.token = dto.token;
+  }
 }

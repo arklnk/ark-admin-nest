@@ -1,8 +1,4 @@
-import type {
-  IUserLogin,
-  IUserLoginCaptcha,
-  IUserPermMenu,
-} from './user.interface';
+import type { SysRoleTreeNode } from './user.interface';
 import type { IAuthUser } from '/@/interfaces/auth';
 
 import { RedisService } from '@liaoliaots/nestjs-redis';
@@ -13,9 +9,16 @@ import { buildShortUUID } from '/@/common/utils/uuid';
 import {
   UserLoginCaptchaCachePrefix,
   UserOnlineCachePrefix,
+  UserPermCachePrefix,
+  UserRoleCahcePrefix,
 } from '/@/constants/cache';
 import { AbstractService } from '/@/common/abstract.service';
-import { UserLoginDto } from './user.dto';
+import {
+  UserLoginCaptchaResDto,
+  UserLoginReqDto,
+  UserLoginResDto,
+  UserPermMenuResDto,
+} from './user.dto';
 import { AppConfigService } from '/@/shared/services/app-config.service';
 import { isEmpty, omit, uniq } from 'lodash';
 import { ApiFailedException } from '/@/exceptions/api-failed.exception';
@@ -29,6 +32,8 @@ import {
 } from '/@/constants/type';
 import { ErrorEnum } from '/@/constants/errorx';
 import { SysPermMenu } from '/@/entities/sys-perm-menu.entity';
+import { SysRole } from '/@/entities/sys-role.entity';
+import { In } from 'typeorm';
 
 @Injectable()
 export class UserService extends AbstractService {
@@ -43,7 +48,7 @@ export class UserService extends AbstractService {
   async createLoginCaptcha(
     width?: number,
     height?: number,
-  ): Promise<IUserLoginCaptcha> {
+  ): Promise<UserLoginCaptchaResDto> {
     const svg = SvgCaptcha.create({
       color: true,
       size: 4,
@@ -53,12 +58,12 @@ export class UserService extends AbstractService {
       charPreset: '1234567890',
     });
 
-    const captcha: IUserLoginCaptcha = {
+    const captcha = new UserLoginCaptchaResDto({
       img: `data:image/svg+xml;base64,${Buffer.from(svg.data).toString(
         'base64',
       )}`,
       id: buildShortUUID(),
-    };
+    });
 
     await this.redisService
       .getClient()
@@ -73,10 +78,10 @@ export class UserService extends AbstractService {
   }
 
   async createLoginToken(
-    dto: UserLoginDto,
+    dto: UserLoginReqDto,
     ip: string,
     uri: string,
-  ): Promise<IUserLogin> {
+  ): Promise<UserLoginResDto> {
     // check captcha is invalid
     const captchaKey = `${UserLoginCaptchaCachePrefix}${dto.captchaId}`;
     const captcha = await this.redisService.getClient().get(captchaKey);
@@ -104,7 +109,7 @@ export class UserService extends AbstractService {
     }
 
     // check user status
-    if (user.status === StatusTypeEnum.FailureOrDisable) {
+    if (user.status === StatusTypeEnum.Disable) {
       throw new ApiFailedException(ErrorEnum.AccountDisableErrorCode);
     }
 
@@ -113,32 +118,27 @@ export class UserService extends AbstractService {
     const token = this.jwtService.sign(payload);
     const onlineKey = `${UserOnlineCachePrefix}${user.id}`;
 
-    // set expires token, default 1 day
+    // set expires token
     await this.redisService
       .getClient()
-      .set(
-        onlineKey,
-        token,
-        'EX',
-        this.configService.jwtConfig.expires || 60 * 60 * 24,
-      );
+      .set(onlineKey, token, 'EX', this.configService.jwtConfig.expires);
 
     // save login log
     await this.entityManager.insert(SysLog, {
       userId: user.id,
-      status: StatusTypeEnum.SuccessfulOrEnable,
+      status: StatusTypeEnum.Successful,
       type: SysLogTypeEnum.Login,
       ip,
       uri,
       request: JSON.stringify(omit(dto, 'password')),
     });
 
-    return {
+    return new UserLoginResDto({
       token,
-    };
+    });
   }
 
-  async getUserPermMenu(uid: number): Promise<IUserPermMenu> {
+  async getUserPermMenu(uid: number): Promise<UserPermMenuResDto> {
     const token = await this.redisService
       .getClient()
       .get(`${UserOnlineCachePrefix}${uid}`);
@@ -151,20 +151,120 @@ export class UserService extends AbstractService {
       where: { id: uid },
     });
 
-    // is super admin
+    // super admin directly find all permission and menu
     if (user.roleIds.includes(this.configService.appConfig.rootRoleId)) {
-      const pms = await this.entityManager.find(SysPermMenu);
-      return this.splitPermAndMenu(pms);
+      const pms = await this.entityManager.find(SysPermMenu, {
+        order: {
+          orderNum: 'DESC',
+        },
+      });
+
+      // cache and return
+      const result = this.splitPermAndMenu(pms);
+      await this.redisService
+        .getClient()
+        .set(`${UserPermCachePrefix}${user.id}`, JSON.stringify(result.perms));
+      return result;
     }
 
-    return {
-      menus: [],
-      perms: [],
-    };
+    // role is tree struct, must find all sub role ids
+    let lastQueryIds: number[] = [].concat(user.roleIds);
+    let allSubRoles: number[] = [];
+
+    const roleIdCache = await this.redisService
+      .getClient()
+      .get(`${UserRoleCahcePrefix}${user.id}`);
+
+    // check whether there is a cache and read from the cache
+    if (isEmpty(roleIdCache)) {
+      allSubRoles = [].concat(user.roleIds);
+
+      do {
+        const roleids = await this.entityManager
+          .createQueryBuilder(SysRole, 'role')
+          .select(['role.id'])
+          .where('FIND_IN_SET(parent_id, :ids)', {
+            ids: lastQueryIds.join(','),
+          })
+          .getMany();
+
+        lastQueryIds = roleids.map((e) => e.id);
+        allSubRoles.push(...lastQueryIds);
+      } while (lastQueryIds.length > 0);
+
+      // removing duplicate ids
+      allSubRoles = uniq(allSubRoles);
+
+      // cache role ids
+      await this.redisService
+        .getClient()
+        .set(`${UserRoleCahcePrefix}${user.id}`, JSON.stringify(allSubRoles));
+    } else {
+      allSubRoles = JSON.parse(roleIdCache);
+    }
+
+    // find relation role info
+    const roles = await this.entityManager.find<SysRoleTreeNode>(SysRole, {
+      select: ['status', 'id', 'parentId', 'permmenuIds'],
+      where: {
+        id: In(allSubRoles),
+      },
+    });
+
+    // filter disabled roles.
+    // if the parent is disabled, then all children are also disabled
+    // list to tree to delete disable node
+    const rolesTree: SysRoleTreeNode[] = [];
+    const nodeMap = new Map<number, SysRoleTreeNode>();
+
+    for (const r of roles) {
+      r.children = r.children || [];
+      nodeMap.set(r.id, r);
+    }
+
+    for (const r of roles) {
+      const parent = nodeMap.get(r.parentId);
+      if (r.status === StatusTypeEnum.Enable) {
+        (parent ? parent.children : rolesTree).push(r);
+      }
+    }
+
+    // after filtering, obtain all permission menu ids
+    let permmenuIds: number[] = [];
+
+    for (let i = 0; i < rolesTree.length; i++) {
+      permmenuIds.push(...rolesTree[i].permmenuIds);
+
+      !isEmpty(rolesTree[i]) &&
+        rolesTree.splice(i + 1, 0, ...rolesTree[i].children);
+    }
+
+    // removing duplicate ids
+    permmenuIds = uniq(permmenuIds);
+
+    // find permission and menu by role id
+    const pms = await this.entityManager.find(SysPermMenu, {
+      where: {
+        id: In(permmenuIds),
+      },
+      order: {
+        orderNum: 'DESC',
+      },
+    });
+
+    // cache and return
+    const result = this.splitPermAndMenu(pms);
+    await this.redisService
+      .getClient()
+      .set(`${UserPermCachePrefix}${user.id}`, JSON.stringify(result.perms));
+    return result;
   }
 
-  private splitPermAndMenu(permmenu: SysPermMenu[]): IUserPermMenu {
-    const menus: IUserPermMenu['menus'] = [];
+  /**
+   * grouping permission and menu
+   */
+  private splitPermAndMenu(permmenu: SysPermMenu[]): UserPermMenuResDto {
+    const menus: SysPermMenu[] = [];
     const perms: string[] = [];
 
     permmenu.forEach((e) => {
@@ -175,9 +275,9 @@ export class UserService extends AbstractService {
       }
     });
 
-    return {
+    return new UserPermMenuResDto({
       menus,
       perms: uniq(perms),
-    };
+    });
   }
 }

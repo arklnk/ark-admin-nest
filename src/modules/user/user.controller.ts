@@ -1,5 +1,5 @@
 import { Body, Controller, Get, Post, Query } from '@nestjs/common';
-import { UserLoginCaptchaDto, UserLoginDto } from './user.dto';
+import { UserLoginCaptchaReqDto, UserLoginReqDto } from './user.dto';
 import { UserService } from './user.service';
 import { AllowAnonPermission } from '/@/decorators/allow-anon-permission.decorator';
 import { AuthUser } from '/@/decorators/auth-user.decorator';
@@ -12,14 +12,14 @@ export class UserController {
 
   @Get('login/captcha')
   @SkipAuth()
-  async loginCaptcha(@Query() query: UserLoginCaptchaDto) {
+  async loginCaptcha(@Query() query: UserLoginCaptchaReqDto) {
     return await this.userService.createLoginCaptcha(query.width, query.height);
   }
 
   @Post('login')
   @SkipAuth()
   async login(
-    @Body() body: UserLoginDto,
+    @Body() body: UserLoginReqDto,
     @Ip() ip: string,
     @Uri() uri: string,
   ) {

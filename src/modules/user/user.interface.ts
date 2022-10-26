@@ -1,15 +1,3 @@
-import type { SysPermMenu } from '/@/entities/sys-perm-menu.entity';
+import type { SysRole } from '/@/entities/sys-role.entity';
 
-export interface IUserLoginCaptcha {
-  img: string;
-  id: string;
-}
-
-export interface IUserLogin {
-  token: string;
-}
-
-export interface IUserPermMenu {
-  menus: SysPermMenu[];
-  perms: string[];
-}
+export type SysRoleTreeNode = SysRole & { children?: SysRole[] };
