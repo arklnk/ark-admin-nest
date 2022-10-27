@@ -14,6 +14,7 @@ import {
 } from '/@/constants/cache';
 import { AbstractService } from '/@/common/abstract.service';
 import {
+  UserAvatarGenerateRespDto,
   UserInfoRespDto,
   UserLoginCaptchaRespDto,
   UserLoginReqDto,
@@ -36,6 +37,7 @@ import { ErrorEnum } from '/@/constants/errorx';
 import { SysPermMenuEntity } from '/@/entities/sys-perm-menu.entity';
 import { SysRoleEntity } from '/@/entities/sys-role.entity';
 import { In } from 'typeorm';
+import { AvatarGenerator } from '/@/providers/avatar-generator';
 
 @Injectable()
 export class UserService extends AbstractService {
@@ -321,5 +323,10 @@ export class UserService extends AbstractService {
     }
 
     return new UserInfoRespDto(user);
+  }
+
+  generateAvatar(): UserAvatarGenerateRespDto {
+    const g = new AvatarGenerator();
+    return new UserAvatarGenerateRespDto(g.generate());
   }
 }

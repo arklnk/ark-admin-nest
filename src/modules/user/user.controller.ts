@@ -44,9 +44,15 @@ export class UserController {
     return await this.userService.getUserInfo(uid);
   }
 
-  @Get('/profile/info')
+  @Get('profile/info')
   @AllowAnonPermission()
   async profileInfo(@AuthUser('uid') uid: number) {
     return await this.userService.getUserProfileInfo(uid);
+  }
+
+  @Get('avatar/generate')
+  @AllowAnonPermission()
+  async avatarGenerate() {
+    return this.userService.generateAvatar();
   }
 }

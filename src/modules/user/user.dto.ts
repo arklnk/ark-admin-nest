@@ -91,3 +91,11 @@ export class UserProfileInfoRespDto {
     this.username = userEntity.username;
   }
 }
+
+export class UserAvatarGenerateRespDto {
+  avatarUrl: string;
+
+  constructor(url: string) {
+    this.avatarUrl = url;
+  }
+}
