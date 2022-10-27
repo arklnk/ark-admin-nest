@@ -50,6 +50,20 @@ export class UserProfileUpdateReqDto {
   avatar: string;
 }
 
+export class UserPasswordUpdateReqDto {
+  @StringField({
+    minLength: 6,
+    maxLength: 12,
+  })
+  oldPassword: string;
+
+  @StringField({
+    minLength: 6,
+    maxLength: 12,
+  })
+  newPassword: string;
+}
+
 //--------------------------------------------------------------------------------
 //------------------------------------- resp -------------------------------------
 //--------------------------------------------------------------------------------

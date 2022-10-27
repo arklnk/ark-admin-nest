@@ -19,6 +19,7 @@ import {
   UserLoginCaptchaRespDto,
   UserLoginReqDto,
   UserLoginRespDto,
+  UserPasswordUpdateReqDto,
   UserPermMenuRespDto,
   UserProfileInfoRespDto,
   UserProfileUpdateReqDto,
@@ -341,6 +342,36 @@ export class UserService extends AbstractService {
         id: uid,
       },
       body,
+    );
+  }
+
+  async updateUserPassword(
+    uid: number,
+    body: UserPasswordUpdateReqDto,
+  ): Promise<void> {
+    const user = await this.entityManager.findOne(SysUserEntity, {
+      select: ['password'],
+      where: {
+        id: uid,
+      },
+    });
+
+    const oldPasswordCipher = encryptByMD5(
+      `${body.oldPassword}${this.configService.appConfig.userPwdSalt}`,
+    );
+
+    if (user.password !== oldPasswordCipher) {
+      throw new ApiFailedException(ErrorEnum.PasswordErrorCode);
+    }
+
+    const newPasswordCipher = encryptByMD5(
+      `${body.newPassword}${this.configService.appConfig.userPwdSalt}`,
+    );
+
+    await this.entityManager.update(
+      SysUserEntity,
+      { id: uid },
+      { password: newPasswordCipher },
     );
   }
 }

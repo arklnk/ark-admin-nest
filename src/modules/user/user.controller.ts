@@ -2,6 +2,7 @@ import { Body, Controller, Get, Post, Query } from '@nestjs/common';
 import {
   UserLoginCaptchaReqDto,
   UserLoginReqDto,
+  UserPasswordUpdateReqDto,
   UserProfileUpdateReqDto,
 } from './user.dto';
 import { UserService } from './user.service';
@@ -67,5 +68,14 @@ export class UserController {
   @AllowAnonPermission()
   async avatarGenerate() {
     return this.userService.generateAvatar();
+  }
+
+  @Post('password/update')
+  @AllowAnonPermission()
+  async passwordUpdate(
+    @AuthUser('uid') uid: number,
+    @Body() body: UserPasswordUpdateReqDto,
+  ) {
+    await this.userService.updateUserPassword(uid, body);
   }
 }
