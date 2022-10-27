@@ -62,6 +62,16 @@ export class UserLoginRespDto {
   }
 }
 
+export class UserInfoRespDto {
+  avatar: string;
+  username: string;
+
+  constructor(userEntiry: SysUserEntity) {
+    this.avatar = userEntiry.avatar;
+    this.username = userEntiry.username;
+  }
+}
+
 export class UserProfileInfoRespDto {
   avatar: string;
   email: string;

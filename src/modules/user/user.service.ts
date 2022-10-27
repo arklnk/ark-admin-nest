@@ -14,6 +14,7 @@ import {
 } from '/@/constants/cache';
 import { AbstractService } from '/@/common/abstract.service';
 import {
+  UserInfoRespDto,
   UserLoginCaptchaRespDto,
   UserLoginReqDto,
   UserLoginRespDto,
@@ -307,5 +308,18 @@ export class UserService extends AbstractService {
     }
 
     return new UserProfileInfoRespDto(user);
+  }
+
+  async getUserInfo(uid: number): Promise<UserInfoRespDto> {
+    const user = await this.entityManager.findOne(SysUserEntity, {
+      select: ['username', 'avatar'],
+      where: { id: uid },
+    });
+
+    if (isEmpty(user)) {
+      throw new Error(`user id: ${uid} does not exist`);
+    }
+
+    return new UserInfoRespDto(user);
   }
 }

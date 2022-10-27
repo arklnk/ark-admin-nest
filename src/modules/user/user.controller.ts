@@ -38,6 +38,12 @@ export class UserController {
     await this.userService.userLogout(uid);
   }
 
+  @Get('info')
+  @AllowAnonPermission()
+  async info(@AuthUser('uid') uid: number) {
+    return await this.userService.getUserInfo(uid);
+  }
+
   @Get('/profile/info')
   @AllowAnonPermission()
   async profileInfo(@AuthUser('uid') uid: number) {
