@@ -65,12 +65,12 @@ export class UserPermMenuRespDto {
 }
 
 export class UserLoginCaptchaRespDto {
-  img: string;
-  id: string;
+  verifyCode: string;
+  captchaId: string;
 
-  constructor(img: string, id: string) {
-    this.img = img;
-    this.id = id;
+  constructor(verifyCode: string, captchaId: string) {
+    this.verifyCode = verifyCode;
+    this.captchaId = captchaId;
   }
 }
 

@@ -71,7 +71,7 @@ export class UserService extends AbstractService {
     await this.redisService
       .getClient()
       .set(
-        `${UserLoginCaptchaCachePrefix}${captcha.id}`,
+        `${UserLoginCaptchaCachePrefix}${captcha.captchaId}`,
         svg.text.toLowerCase(),
         'EX',
         60 * 5,
