@@ -8,6 +8,7 @@ import { AppConfigService } from './shared/services/app-config.service';
 import { UserModule } from './modules/user/user.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { SystemModule } from './modules/system/system.module';
+import { LogModule } from './modules/log/log.module';
 
 @Module({
   imports: [
@@ -41,6 +42,7 @@ import { SystemModule } from './modules/system/system.module';
     // business module
     UserModule,
     SystemModule,
+    LogModule,
   ],
 })
 export class AppModule {}
