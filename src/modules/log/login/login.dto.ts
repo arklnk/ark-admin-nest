@@ -1,7 +1,7 @@
 import type { SysLogEntity } from '/@/entities/sys-log.entity';
 import type { SysUserEntity } from '/@/entities/sys-user.entity';
 
-export class LoginLogRespItemDto {
+export class LogLoginRespItemDto {
   account: string;
   id: number;
   ip: string;

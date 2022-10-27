@@ -1,6 +1,6 @@
 import { Module } from '@nestjs/common';
 import { RouterModule } from '@nestjs/core';
-import { LoginLogModule } from './login/login-log.module';
+import { LogLoginModule } from './login/login.module';
 
 @Module({
   imports: [
@@ -8,11 +8,11 @@ import { LoginLogModule } from './login/login-log.module';
     RouterModule.register([
       {
         path: 'log',
-        children: [LoginLogModule],
+        children: [LogLoginModule],
       },
     ]),
     // register component
-    LoginLogModule,
+    LogLoginModule,
   ],
 })
 export class LogModule {}

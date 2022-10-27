@@ -1,4 +1,4 @@
-import type { LoginLogRespItemDto } from './login-log.dto';
+import type { LogLoginRespItemDto } from './login.dto';
 
 import { Injectable } from '@nestjs/common';
 import { AbstractService } from '/@/common/abstract.service';
@@ -7,7 +7,7 @@ import { SysLogEntity } from '/@/entities/sys-log.entity';
 import { SysUserEntity } from '/@/entities/sys-user.entity';
 
 @Injectable()
-export class LoginLogService extends AbstractService {
+export class LogLoginService extends AbstractService {
   async getLoginLogByPage(page: number, limit: number) {
     const query = this.entityManager
       .createQueryBuilder(SysLogEntity, 'log')
@@ -24,7 +24,7 @@ export class LoginLogService extends AbstractService {
       .skip((page - 1) * limit)
       .limit(limit);
 
-    const rows = await query.getRawMany<LoginLogRespItemDto>();
+    const rows = await query.getRawMany<LogLoginRespItemDto>();
     const total = await query.getCount();
 
     return rows.toPage({
