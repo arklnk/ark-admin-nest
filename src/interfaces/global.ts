@@ -1,4 +1,8 @@
-import type { PaginationInfo, PaginationResData } from './response';
+import type {
+  PaginationInfo,
+  PaginationResData,
+  ListResData,
+} from './response';
 
 declare global {
   interface Fn<T = any, R = T> {
@@ -17,5 +21,10 @@ declare global {
      * Generate pagination result
      */
     toPage(this: T[], page: PaginationInfo): PaginationResData<T>;
+
+    /**
+     * Generate list result
+     */
+    toList(this: T[]): ListResData<T>;
   }
 }

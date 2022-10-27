@@ -10,3 +10,9 @@ Array.prototype.toPage = function (pagination) {
     pagination,
   };
 };
+
+Array.prototype.toList = function () {
+  return {
+    list: this,
+  };
+};
