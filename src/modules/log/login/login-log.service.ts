@@ -1,5 +1,6 @@
+import type { LoginLogRespItemDto } from './login-log.dto';
+
 import { Injectable } from '@nestjs/common';
-import { LoginLogRespItemDto } from './login-log.dto';
 import { AbstractService } from '/@/common/abstract.service';
 import { SysLogTypeEnum } from '/@/constants/type';
 import { SysLogEntity } from '/@/entities/sys-log.entity';
