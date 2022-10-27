@@ -11,7 +11,7 @@ RUN npm install -g pnpm
 # RUN npm config set registry https://registry.npm.taobao.org
 
 # 安装开发期依赖
-COPY package.json ./package.json
+COPY package.json pnpm-lock.yaml ./
 RUN pnpm i
 
 # 构建项目
@@ -25,8 +25,7 @@ WORKDIR /app
 RUN npm install -g pnpm
 
 COPY --from=build /app/dist ./dist
-COPY --from=build /app/bootstrap.js ./
-COPY --from=build /app/package.json ./
+COPY --from=build /app/package.json /app/pnpm-lock.yaml ./
 
 # 安装tzdata,默认的alpine基础镜像不包含时区组件，安装后可通过TZ环境变量配置时区
 RUN apk add --no-cache tzdata
