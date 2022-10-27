@@ -23,15 +23,13 @@ export class LoginLogService extends AbstractService {
       .skip((page - 1) * limit)
       .limit(limit);
 
-    const rows = await query.getRawMany();
+    const rows = await query.getRawMany<LoginLogRespItemDto>();
     const total = await query.getCount();
 
-    return rows
-      .map((e) => new LoginLogRespItemDto(e))
-      .toPage({
-        page,
-        limit,
-        total,
-      });
+    return rows.toPage({
+      page,
+      limit,
+      total,
+    });
   }
 }
