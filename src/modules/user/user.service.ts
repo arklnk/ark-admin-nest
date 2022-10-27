@@ -21,6 +21,7 @@ import {
   UserLoginRespDto,
   UserPermMenuRespDto,
   UserProfileInfoRespDto,
+  UserProfileUpdateReqDto,
 } from './user.dto';
 import { AppConfigService } from '/@/shared/services/app-config.service';
 import { isEmpty, omit, uniq } from 'lodash';
@@ -328,5 +329,18 @@ export class UserService extends AbstractService {
   generateAvatar(): UserAvatarGenerateRespDto {
     const g = new AvatarGenerator();
     return new UserAvatarGenerateRespDto(g.generate());
+  }
+
+  async updateUserProfileInfo(
+    uid: number,
+    body: UserProfileUpdateReqDto,
+  ): Promise<void> {
+    await this.entityManager.update(
+      SysUserEntity,
+      {
+        id: uid,
+      },
+      body,
+    );
   }
 }

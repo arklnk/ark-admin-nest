@@ -1,5 +1,9 @@
 import { Body, Controller, Get, Post, Query } from '@nestjs/common';
-import { UserLoginCaptchaReqDto, UserLoginReqDto } from './user.dto';
+import {
+  UserLoginCaptchaReqDto,
+  UserLoginReqDto,
+  UserProfileUpdateReqDto,
+} from './user.dto';
 import { UserService } from './user.service';
 import { AllowAnonPermission } from '/@/decorators/allow-anon-permission.decorator';
 import { AuthUser } from '/@/decorators/auth-user.decorator';
@@ -48,6 +52,15 @@ export class UserController {
   @AllowAnonPermission()
   async profileInfo(@AuthUser('uid') uid: number) {
     return await this.userService.getUserProfileInfo(uid);
+  }
+
+  @Post('profile/update')
+  @AllowAnonPermission()
+  async profileUpdate(
+    @AuthUser('uid') uid: number,
+    @Body() body: UserProfileUpdateReqDto,
+  ) {
+    await this.userService.updateUserProfileInfo(uid, body);
   }
 
   @Get('avatar/generate')

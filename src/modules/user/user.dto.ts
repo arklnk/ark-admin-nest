@@ -30,6 +30,26 @@ export class UserLoginReqDto {
   password: string;
 }
 
+export class UserProfileUpdateReqDto {
+  @StringField({ minLength: 2, maxLength: 12 })
+  username: string;
+
+  @StringField({ minLength: 2, maxLength: 12 })
+  nickname: string;
+
+  @NumberField({ int: true, min: 0, max: 2 })
+  gender: number;
+
+  @StringField({ required: false })
+  email: string;
+
+  @StringField({ required: false })
+  mobile: string;
+
+  @StringField()
+  avatar: string;
+}
+
 //--------------------------------------------------------------------------------
 //------------------------------------- resp -------------------------------------
 //--------------------------------------------------------------------------------
