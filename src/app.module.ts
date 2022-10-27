@@ -1,18 +1,19 @@
 import './polyfill';
 
 import { Module } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
-import { SharedModule } from './shared/shared.module';
+import { ConfigModule as NestConfigModule } from '@nestjs/config';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { RedisModule } from '@liaoliaots/nestjs-redis';
+import { SharedModule } from './shared/shared.module';
 import { AppConfigService } from './shared/services/app-config.service';
 import { UserModule } from './modules/user/user.module';
-import { TypeOrmModule } from '@nestjs/typeorm';
 import { SystemModule } from './modules/system/system.module';
 import { LogModule } from './modules/log/log.module';
+import { ConfigModule } from './modules/config/config.module';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({
+    NestConfigModule.forRoot({
       isGlobal: true,
       envFilePath: [
         `.env.${process.env.NODE_ENV}.local`,
@@ -43,6 +44,7 @@ import { LogModule } from './modules/log/log.module';
     UserModule,
     SystemModule,
     LogModule,
+    ConfigModule,
   ],
 })
 export class AppModule {}
