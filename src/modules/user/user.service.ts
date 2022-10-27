@@ -14,10 +14,11 @@ import {
 } from '/@/constants/cache';
 import { AbstractService } from '/@/common/abstract.service';
 import {
-  UserLoginCaptchaResDto,
+  UserLoginCaptchaRespDto,
   UserLoginReqDto,
-  UserLoginResDto,
-  UserPermMenuResDto,
+  UserLoginRespDto,
+  UserPermMenuRespDto,
+  UserProfileInfoRespDto,
 } from './user.dto';
 import { AppConfigService } from '/@/shared/services/app-config.service';
 import { isEmpty, omit, uniq } from 'lodash';
@@ -48,7 +49,7 @@ export class UserService extends AbstractService {
   async createLoginCaptcha(
     width?: number,
     height?: number,
-  ): Promise<UserLoginCaptchaResDto> {
+  ): Promise<UserLoginCaptchaRespDto> {
     const svg = SvgCaptcha.create({
       color: true,
       size: 4,
@@ -58,12 +59,10 @@ export class UserService extends AbstractService {
       charPreset: '1234567890',
     });
 
-    const captcha = new UserLoginCaptchaResDto({
-      img: `data:image/svg+xml;base64,${Buffer.from(svg.data).toString(
-        'base64',
-      )}`,
-      id: buildShortUUID(),
-    });
+    const captcha = new UserLoginCaptchaRespDto(
+      `data:image/svg+xml;base64,${Buffer.from(svg.data).toString('base64')}`,
+      buildShortUUID(),
+    );
 
     await this.redisService
       .getClient()
@@ -81,7 +80,7 @@ export class UserService extends AbstractService {
     dto: UserLoginReqDto,
     ip: string,
     uri: string,
-  ): Promise<UserLoginResDto> {
+  ): Promise<UserLoginRespDto> {
     // check captcha is invalid
     const captchaKey = `${UserLoginCaptchaCachePrefix}${dto.captchaId}`;
     const captcha = await this.redisService.getClient().get(captchaKey);
@@ -133,12 +132,10 @@ export class UserService extends AbstractService {
       request: JSON.stringify(omit(dto, 'password')),
     });
 
-    return new UserLoginResDto({
-      token,
-    });
+    return new UserLoginRespDto(token);
   }
 
-  async getUserPermMenu(uid: number): Promise<UserPermMenuResDto> {
+  async getUserPermMenu(uid: number): Promise<UserPermMenuRespDto> {
     const token = await this.redisService
       .getClient()
       .get(`${UserOnlineCachePrefix}${uid}`);
@@ -266,7 +263,7 @@ export class UserService extends AbstractService {
   /**
    * grouping permission and menu
    */
-  private splitPermAndMenu(permmenu: SysPermMenuEntity[]): UserPermMenuResDto {
+  private splitPermAndMenu(permmenu: SysPermMenuEntity[]): UserPermMenuRespDto {
     const menus: SysPermMenuEntity[] = [];
     const perms: string[] = [];
 
@@ -278,10 +275,7 @@ export class UserService extends AbstractService {
       }
     });
 
-    return new UserPermMenuResDto({
-      menus,
-      perms: uniq(perms),
-    });
+    return new UserPermMenuRespDto(menus, uniq(perms));
   }
 
   async userLogout(uid: number): Promise<void> {
@@ -294,7 +288,7 @@ export class UserService extends AbstractService {
     await this.redisService.getClient().del(keys);
   }
 
-  async getUserProfileInfo(uid: number): Promise<SysUserEntity> {
+  async getUserProfileInfo(uid: number): Promise<UserProfileInfoRespDto> {
     const user = await this.entityManager.findOne(SysUserEntity, {
       select: [
         'username',
@@ -312,6 +306,6 @@ export class UserService extends AbstractService {
       throw new Error(`user id: ${uid} does not exist`);
     }
 
-    return user;
+    return new UserProfileInfoRespDto(user);
   }
 }
