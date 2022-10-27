@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { LoginLogRespItemDto } from './login-log.dto';
 import { AbstractService } from '/@/common/abstract.service';
 import { SysLogTypeEnum } from '/@/constants/type';
 import { SysLogEntity } from '/@/entities/sys-log.entity';
@@ -25,10 +26,12 @@ export class LoginLogService extends AbstractService {
     const rows = await query.getRawMany();
     const total = await query.getCount();
 
-    return rows.toPage({
-      page,
-      limit,
-      total,
-    });
+    return rows
+      .map((e) => new LoginLogRespItemDto(e))
+      .toPage({
+        page,
+        limit,
+        total,
+      });
   }
 }
