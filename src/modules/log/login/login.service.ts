@@ -1,10 +1,9 @@
-import type { LogLoginRespItemDto } from './login.dto';
-
 import { Injectable } from '@nestjs/common';
 import { AbstractService } from '/@/common/abstract.service';
 import { SysLogTypeEnum } from '/@/constants/type';
 import { SysLogEntity } from '/@/entities/sys-log.entity';
 import { SysUserEntity } from '/@/entities/sys-user.entity';
+import { LogLoginRespItemDto } from './login.dto';
 
 @Injectable()
 export class LogLoginService extends AbstractService {
