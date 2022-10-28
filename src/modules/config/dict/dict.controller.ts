@@ -24,6 +24,11 @@ export class ConfigDictController {
     );
   }
 
+  @Get('list')
+  async list() {
+    return await this.dictService.getConfigDictList();
+  }
+
   @Post('delete')
   async delete(@Body() body: ConfigDictIdDto) {
     await this.dictService.deleteConfigDict(body.id);
