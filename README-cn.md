@@ -9,3 +9,5 @@
 ## 致谢
 
 [awesome-nest-boilerplate](https://github.com/NarHakobyan/awesome-nest-boilerplate)
+
+[nest-shop](https://github.com/Yuuki-Sakura/nest-shop)
