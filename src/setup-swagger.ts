@@ -37,6 +37,6 @@ export function setupSwagger(
   // started log
   const logger = new Logger('SwaggerModule');
   logger.log(
-    `Document running on http://localhost:${config.appConfig.port}/${path}`,
+    `Document running on http://127.0.0.1:${config.appConfig.port}/${path}`,
   );
 }
