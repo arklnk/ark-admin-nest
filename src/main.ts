@@ -51,9 +51,15 @@ async function bootstrap() {
     new ValidationPipe({
       whitelist: true,
       transform: true,
-      dismissDefaultMessages: true,
       errorHttpStatusCode: HttpStatus.UNPROCESSABLE_ENTITY,
-      exceptionFactory: (errors) => new UnprocessableEntityException(errors),
+      exceptionFactory: (errors) =>
+        new UnprocessableEntityException(
+          errors.map((e) => {
+            const rule = Object.keys(e.constraints)[0];
+            const msg = e.constraints[rule];
+            return `property ${e.property} validation failed: ${msg}, following constraints: ${rule}`;
+          })[0],
+        ),
     }),
   );
 
