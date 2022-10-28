@@ -1,4 +1,4 @@
-import { OmitType } from '@nestjs/mapped-types';
+import { OmitType } from '@nestjs/swagger';
 import { PageOptionsDto } from '/@/common/dto/page-options.dto';
 import { NumberField, StringField } from '/@/decorators/field.decorator';
 import { SysDictionaryEntity } from '/@/entities/sys-dictionary.entity';
