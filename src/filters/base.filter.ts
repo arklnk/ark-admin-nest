@@ -1,4 +1,4 @@
-import type { BaseResponse } from '/@/interfaces/response';
+import type { IBaseResponse } from '/@/interfaces/response';
 import type { Response } from 'express';
 
 import {
@@ -47,7 +47,7 @@ export class BaseExceptionFilter implements ExceptionFilter {
     }
 
     // set base response
-    const resBody: BaseResponse = {
+    const resBody: IBaseResponse = {
       msg: errorMessage,
       code: apiErrorCode,
       data: null,

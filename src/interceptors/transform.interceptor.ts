@@ -1,4 +1,4 @@
-import type { BaseResponse } from '/@/interfaces/response';
+import type { IBaseResponse } from '/@/interfaces/response';
 
 import {
   CallHandler,
@@ -21,7 +21,7 @@ export class TransformInterceptor implements NestInterceptor {
   intercept(
     context: ExecutionContext,
     next: CallHandler<any>,
-  ): Observable<BaseResponse> {
+  ): Observable<IBaseResponse> {
     return next.handle().pipe(
       map((data) => {
         // check need transform

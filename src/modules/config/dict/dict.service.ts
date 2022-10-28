@@ -1,4 +1,7 @@
-import type { PaginationResData, ListResData } from '/@/interfaces/response';
+import type {
+  IPaginationRespData,
+  IListRespData,
+} from '/@/interfaces/response';
 
 import { ConfigDictAddReqDto, ConfigDictRespItemDto } from './dict.dto';
 import { Injectable } from '@nestjs/common';
@@ -15,7 +18,7 @@ export class ConfigDictService extends AbstractService {
     page: number,
     limit: number,
     parentId: number,
-  ): Promise<PaginationResData<ConfigDictRespItemDto>> {
+  ): Promise<IPaginationRespData<ConfigDictRespItemDto>> {
     const [rows, count] =
       await this.entityManager.findAndCount<ConfigDictRespItemDto>(
         SysDictionaryEntity,
@@ -46,23 +49,26 @@ export class ConfigDictService extends AbstractService {
     });
   }
 
-  async getConfigDictList(): Promise<ListResData<SysDictionaryEntity>> {
-    const rows = await this.entityManager.find(SysDictionaryEntity, {
-      select: [
-        'id',
-        'parentId',
-        'name',
-        'orderNum',
-        'remark',
-        'status',
-        'type',
-        'uniqueKey',
-        'value',
-      ],
-      where: {
-        parentId: 0,
+  async getConfigDictList(): Promise<IListRespData<ConfigDictRespItemDto>> {
+    const rows = await this.entityManager.find<ConfigDictRespItemDto>(
+      SysDictionaryEntity,
+      {
+        select: [
+          'id',
+          'parentId',
+          'name',
+          'orderNum',
+          'remark',
+          'status',
+          'type',
+          'uniqueKey',
+          'value',
+        ],
+        where: {
+          parentId: 0,
+        },
       },
-    });
+    );
 
     return rows.toList();
   }

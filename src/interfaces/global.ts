@@ -1,7 +1,7 @@
 import type {
-  PaginationInfo,
-  PaginationResData,
-  ListResData,
+  IPaginationInfo,
+  IPaginationRespData,
+  IListRespData,
 } from './response';
 
 declare global {
@@ -20,11 +20,11 @@ declare global {
     /**
      * Generate pagination result
      */
-    toPage(this: T[], page: PaginationInfo): PaginationResData<T>;
+    toPage(this: T[], page: IPaginationInfo): IPaginationRespData<T>;
 
     /**
      * Generate list result
      */
-    toList(this: T[]): ListResData<T>;
+    toList(this: T[]): IListRespData<T>;
   }
 }

@@ -1,19 +1,19 @@
-export interface BaseResponse<T = any> {
+export interface IBaseResponse<T = any> {
   msg: string;
   code: number;
   data?: T;
 }
 
-export interface ListResData<T = any> {
+export interface IListRespData<T = any> {
   list: T[];
 }
 
-export interface PaginationInfo {
+export interface IPaginationInfo {
   page: number;
   limit: number;
   total: number;
 }
 
-export interface PaginationResData<T = any> extends ListResData<T> {
-  pagination: PaginationInfo;
+export interface IPaginationRespData<T = any> extends IListRespData<T> {
+  pagination: IPaginationInfo;
 }
