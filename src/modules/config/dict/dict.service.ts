@@ -39,4 +39,14 @@ export class ConfigDictService extends AbstractService {
       total: count,
     });
   }
+
+  async deleteConfigDict(id: number): Promise<void> {
+    await this.entityManager
+      .createQueryBuilder()
+      .delete()
+      .from(SysDictionaryEntity)
+      .where('id = :id', { id })
+      .orWhere('parentId = :id', { id })
+      .execute();
+  }
 }

@@ -1,5 +1,9 @@
 import { Body, Controller, Get, Post, Query } from '@nestjs/common';
-import { ConfigDictAddReqDto, ConfigDictDataPageReqDto } from './dict.dto';
+import {
+  ConfigDictAddReqDto,
+  ConfigDictDataPageReqDto,
+  ConfigDictIdDto,
+} from './dict.dto';
 import { ConfigDictService } from './dict.service';
 
 @Controller('dict')
@@ -18,5 +22,10 @@ export class ConfigDictController {
       query.limit,
       query.parentId,
     );
+  }
+
+  @Post('delete')
+  async delete(@Body() body: ConfigDictIdDto) {
+    await this.dictService.deleteConfigDict(body.id);
   }
 }
