@@ -62,7 +62,7 @@ export class ConfigDictDataPageReqDto extends PageOptionsDto {
 export class ConfigDictIdDto {
   @NumberField({
     int: true,
-    min: 0,
+    min: 1,
   })
   id: number;
 }
