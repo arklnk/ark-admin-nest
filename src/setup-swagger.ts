@@ -1,4 +1,4 @@
-import type { INestApplication } from '@nestjs/common';
+import { INestApplication, Logger } from '@nestjs/common';
 import type { AppConfigService } from './shared/services/app-config.service';
 
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
@@ -31,8 +31,12 @@ export function setupSwagger(
     name: 'Authorization',
   });
 
-  const document = SwaggerModule.createDocument(app, documentBuilder.build(), {
-    ignoreGlobalPrefix: false,
-  });
-  SwaggerModule.setup(path, app, document, { useGlobalPrefix: true });
+  const document = SwaggerModule.createDocument(app, documentBuilder.build());
+  SwaggerModule.setup(path, app, document);
+
+  // started log
+  const logger = new Logger('SwaggerModule');
+  logger.log(
+    `Document running on http://localhost:${config.appConfig.port}/${path}`,
+  );
 }

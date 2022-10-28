@@ -13,6 +13,7 @@ import { Authguard } from './guards/auth.guard';
 import {
   ClassSerializerInterceptor,
   HttpStatus,
+  Logger,
   UnprocessableEntityException,
   ValidationPipe,
 } from '@nestjs/common';
@@ -72,6 +73,10 @@ async function bootstrap() {
   setupSwagger(app, configService);
 
   await app.listen(port, '0.0.0.0');
+
+  // started log
+  const logger = new Logger('NestApplication');
+  logger.log(`Server running on ${await app.getUrl()}`);
 }
 
 bootstrap();
