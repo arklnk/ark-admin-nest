@@ -16,6 +16,7 @@ import {
   UnprocessableEntityException,
   ValidationPipe,
 } from '@nestjs/common';
+import { setupSwagger } from './setup-swagger';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(
@@ -66,6 +67,9 @@ async function bootstrap() {
   // global prefix
   const { globalPrefix, port } = configService.appConfig;
   app.setGlobalPrefix(globalPrefix);
+
+  // swagger document
+  setupSwagger(app, configService);
 
   await app.listen(port, '0.0.0.0');
 }

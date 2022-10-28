@@ -77,6 +77,13 @@ export class AppConfigService {
     };
   }
 
+  get swaggerConfig() {
+    return {
+      enable: this.getBoolean('SWAGGER_ENABLE'),
+      path: this.getString('SWAGGER_PATH'),
+    };
+  }
+
   getString(key: string): string {
     const value = this.get(key);
 
