@@ -1,3 +1,4 @@
+import { OmitType } from '@nestjs/mapped-types';
 import { PageOptionsDto } from '/@/common/dto/page-options.dto';
 import { NumberField, StringField } from '/@/decorators/field.decorator';
 import { SysDictionaryEntity } from '/@/entities/sys-dictionary.entity';
@@ -60,6 +61,16 @@ export class ConfigDictDataPageReqDto extends PageOptionsDto {
 }
 
 export class ConfigDictIdDto {
+  @NumberField({
+    int: true,
+    min: 1,
+  })
+  id: number;
+}
+
+export class ConfigDictUpdateReqDto extends OmitType(ConfigDictAddReqDto, [
+  'uniqueKey',
+] as const) {
   @NumberField({
     int: true,
     min: 1,

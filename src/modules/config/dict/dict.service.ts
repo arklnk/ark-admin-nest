@@ -3,10 +3,15 @@ import type {
   IListRespData,
 } from '/@/interfaces/response';
 
-import { ConfigDictAddReqDto, ConfigDictRespItemDto } from './dict.dto';
+import {
+  ConfigDictAddReqDto,
+  ConfigDictRespItemDto,
+  ConfigDictUpdateReqDto,
+} from './dict.dto';
 import { Injectable } from '@nestjs/common';
 import { AbstractService } from '/@/common/abstract.service';
 import { SysDictionaryEntity } from '/@/entities/sys-dictionary.entity';
+import { omit } from 'lodash';
 
 @Injectable()
 export class ConfigDictService extends AbstractService {
@@ -81,5 +86,15 @@ export class ConfigDictService extends AbstractService {
       .where('id = :id', { id })
       .orWhere('parentId = :id', { id })
       .execute();
+  }
+
+  async updateConfigDict(body: ConfigDictUpdateReqDto): Promise<void> {
+    await this.entityManager.update(
+      SysDictionaryEntity,
+      { id: body.id },
+      {
+        ...omit(body, 'id'),
+      },
+    );
   }
 }

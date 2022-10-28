@@ -3,6 +3,7 @@ import {
   ConfigDictAddReqDto,
   ConfigDictDataPageReqDto,
   ConfigDictIdDto,
+  ConfigDictUpdateReqDto,
 } from './dict.dto';
 import { ConfigDictService } from './dict.service';
 
@@ -32,5 +33,10 @@ export class ConfigDictController {
   @Post('delete')
   async delete(@Body() body: ConfigDictIdDto) {
     await this.dictService.deleteConfigDict(body.id);
+  }
+
+  @Post('update')
+  async update(@Body() body: ConfigDictUpdateReqDto) {
+    await this.dictService.updateConfigDict(body);
   }
 }
