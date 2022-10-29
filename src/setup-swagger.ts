@@ -19,7 +19,7 @@ export function setupSwagger(
   const packageInfo = require(join(process.cwd(), 'package.json'));
 
   const documentBuilder = new DocumentBuilder()
-    .setTitle(`API Documentation`)
+    .setTitle(`Api Documentation`)
     .setVersion(`v${packageInfo.version}`)
     .setDescription(packageInfo.description);
 

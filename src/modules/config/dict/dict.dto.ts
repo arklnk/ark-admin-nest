@@ -15,7 +15,7 @@ export class ConfigDictAddReqDto {
     min: 0,
     required: false,
   })
-  orderNum: number;
+  orderNum?: number;
 
   @NumberField({
     int: true,
@@ -26,7 +26,7 @@ export class ConfigDictAddReqDto {
   @StringField({
     required: false,
   })
-  remark: string;
+  remark?: string;
 
   @NumberField({
     int: true,

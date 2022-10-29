@@ -21,6 +21,7 @@ import {
   UserLoginRespDto,
   UserPasswordUpdateReqDto,
   UserPermMenuRespDto,
+  UserPermRespItemDto,
   UserProfileInfoRespDto,
   UserProfileUpdateReqDto,
 } from './user.dto';
@@ -269,14 +270,14 @@ export class UserService extends AbstractService {
    * grouping permission and menu
    */
   private splitPermAndMenu(permmenu: SysPermMenuEntity[]): UserPermMenuRespDto {
-    const menus: SysPermMenuEntity[] = [];
+    const menus: UserPermRespItemDto[] = [];
     const perms: string[] = [];
 
     permmenu.forEach((e) => {
       if (e.type === SysMenuTypeEnum.Permission) {
         perms.push(...(JSON.parse(e.perms) as string[]));
       } else {
-        menus.push(e);
+        menus.push(new UserPermRespItemDto(e));
       }
     });
 
