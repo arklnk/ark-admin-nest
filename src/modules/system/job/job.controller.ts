@@ -1,6 +1,6 @@
 import { Body, Controller, Post } from '@nestjs/common';
 import { ApiOkResponse, ApiTags } from '@nestjs/swagger';
-import { SysJobAddReqDto } from './job.dto';
+import { SysJobAddReqDto, SysJobDeleteReqDto } from './job.dto';
 import { SystemJobService } from './job.service';
 import { ApiSecurityAuth } from '/@/decorators/swagger.decorator';
 
@@ -14,5 +14,11 @@ export class SystemJobController {
   @ApiOkResponse()
   async add(@Body() body: SysJobAddReqDto) {
     await this.jobService.addJob(body);
+  }
+
+  @Post('delete')
+  @ApiOkResponse()
+  async delete(@Body() body: SysJobDeleteReqDto) {
+    await this.jobService.deleteJob(body.id);
   }
 }

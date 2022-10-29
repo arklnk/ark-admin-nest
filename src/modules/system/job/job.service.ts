@@ -8,4 +8,8 @@ export class SystemJobService extends AbstractService {
   async addJob(item: SysJobAddReqDto): Promise<void> {
     await this.entityManager.insert(SysJobEntity, item);
   }
+
+  async deleteJob(id: number): Promise<void> {
+    await this.entityManager.delete(SysJobEntity, { id });
+  }
 }
