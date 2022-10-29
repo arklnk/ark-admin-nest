@@ -18,3 +18,10 @@ export class SysProfessionAddReqDto {
   })
   status: number;
 }
+
+export class SysProfessionDeleteReqDto {
+  @NumberField({
+    min: 1,
+  })
+  id: number;
+}

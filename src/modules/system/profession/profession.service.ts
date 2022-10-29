@@ -8,4 +8,8 @@ export class SystemProfessionService extends AbstractService {
   async addProfession(item: SysProfessionAddReqDto): Promise<void> {
     await this.entityManager.insert(SysProfessionEntity, item);
   }
+
+  async deleteProfession(id: number): Promise<void> {
+    await this.entityManager.delete(SysProfessionEntity, { id });
+  }
 }
