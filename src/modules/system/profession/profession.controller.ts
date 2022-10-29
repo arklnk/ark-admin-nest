@@ -4,6 +4,7 @@ import {
   SysProfessionAddReqDto,
   SysProfessionDeleteReqDto,
   SysProfessionItemRespDto,
+  SysProfessionUpdateReqDto,
 } from './profession.dto';
 import { SystemProfessionService } from './profession.service';
 import { PageOptionsDto } from '/@/common/dto/page-options.dto';
@@ -37,5 +38,11 @@ export class SystemProfessionController {
   })
   async page(@Query() query: PageOptionsDto) {
     return await this.profService.getProfessionByPage(query.page, query.limit);
+  }
+
+  @Post('update')
+  @ApiOkResponse()
+  async update(@Body() body: SysProfessionUpdateReqDto) {
+    await this.profService.updateProfession(body);
   }
 }

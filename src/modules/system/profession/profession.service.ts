@@ -1,6 +1,8 @@
 import { Injectable } from '@nestjs/common';
+import { omit } from 'lodash';
 import {
   SysProfessionAddReqDto,
+  SysProfessionDeleteReqDto,
   SysProfessionItemRespDto,
 } from './profession.dto';
 import { AbstractService } from '/@/common/abstract.service';
@@ -32,5 +34,13 @@ export class SystemProfessionService extends AbstractService {
       page,
       total: count,
     });
+  }
+
+  async updateProfession(item: SysProfessionDeleteReqDto): Promise<void> {
+    await this.entityManager.update(
+      SysProfessionEntity,
+      { id: item.id },
+      omit(item, 'id'),
+    );
   }
 }

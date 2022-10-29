@@ -27,6 +27,13 @@ export class SysProfessionDeleteReqDto {
   id: number;
 }
 
+export class SysProfessionUpdateReqDto extends SysProfessionAddReqDto {
+  @NumberField({
+    min: 1,
+  })
+  id: number;
+}
+
 //--------------------------------------------------------------------------------
 //------------------------------------- resp -------------------------------------
 //--------------------------------------------------------------------------------
