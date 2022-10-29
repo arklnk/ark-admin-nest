@@ -1,5 +1,5 @@
-import type { SysLogEntity } from '/@/entities/sys-log.entity';
-import type { SysUserEntity } from '/@/entities/sys-user.entity';
+import { SysLogEntity } from '/@/entities/sys-log.entity';
+import { SysUserEntity } from '/@/entities/sys-user.entity';
 
 export class LogLoginRespItemDto {
   account: string;
