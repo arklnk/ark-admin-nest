@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { SysJobAddReqDto } from './job.dto';
+import { SysJobAddReqDto, SysJobItemRespDto } from './job.dto';
 import { AbstractService } from '/@/common/abstract.service';
 import { SysJobEntity } from '/@/entities/sys-job.entity';
 
@@ -11,5 +11,20 @@ export class SystemJobService extends AbstractService {
 
   async deleteJob(id: number): Promise<void> {
     await this.entityManager.delete(SysJobEntity, { id });
+  }
+
+  async getJobByPage(page: number, limit: number) {
+    const [rows, count] =
+      await this.entityManager.findAndCount<SysJobItemRespDto>(SysJobEntity, {
+        select: ['id', 'name', 'orderNum', 'status'],
+        skip: (page - 1) * limit,
+        take: limit,
+      });
+
+    return rows.toPage({
+      page,
+      limit,
+      total: count,
+    });
   }
 }

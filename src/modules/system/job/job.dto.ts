@@ -1,4 +1,5 @@
 import { NumberField, StringField } from '/@/decorators/field.decorator';
+import { SysJobEntity } from '/@/entities/sys-job.entity';
 
 export class SysJobAddReqDto {
   @StringField({
@@ -25,4 +26,22 @@ export class SysJobDeleteReqDto {
     min: 1,
   })
   id: number;
+}
+
+//--------------------------------------------------------------------------------
+//------------------------------------- resp -------------------------------------
+//--------------------------------------------------------------------------------
+
+export class SysJobItemRespDto {
+  id: number;
+  name: string;
+  orderNum: number;
+  status: number;
+
+  constructor(entity: SysJobEntity) {
+    this.id = entity.id;
+    this.name = entity.name;
+    this.orderNum = entity.orderNum;
+    this.status = entity.status;
+  }
 }
