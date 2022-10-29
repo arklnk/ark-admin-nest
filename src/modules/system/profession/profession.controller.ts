@@ -1,10 +1,13 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import { Body, Controller, Get, Post, Query } from '@nestjs/common';
 import { ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import {
   SysProfessionAddReqDto,
   SysProfessionDeleteReqDto,
+  SysProfessionItemRespDto,
 } from './profession.dto';
 import { SystemProfessionService } from './profession.service';
+import { PageOptionsDto } from '/@/common/dto/page-options.dto';
+import { wrapResponse } from '/@/common/utils/swagger';
 import { ApiSecurityAuth } from '/@/decorators/swagger.decorator';
 
 @ApiTags('System profession - 系统职称')
@@ -23,5 +26,16 @@ export class SystemProfessionController {
   @ApiOkResponse()
   async delete(@Body() body: SysProfessionDeleteReqDto) {
     await this.profService.deleteProfession(body.id);
+  }
+
+  @Get('page')
+  @ApiOkResponse({
+    type: wrapResponse({
+      type: SysProfessionItemRespDto,
+      struct: 'page',
+    }),
+  })
+  async page(@Query() query: PageOptionsDto) {
+    return await this.profService.getProfessionByPage(query.page, query.limit);
   }
 }
