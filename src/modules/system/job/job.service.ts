@@ -1,5 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import { SysJobAddReqDto, SysJobItemRespDto } from './job.dto';
+import { omit } from 'lodash';
+import {
+  SysJobAddReqDto,
+  SysJobItemRespDto,
+  SysJobUpdateReqDto,
+} from './job.dto';
 import { AbstractService } from '/@/common/abstract.service';
 import { SysJobEntity } from '/@/entities/sys-job.entity';
 
@@ -26,5 +31,13 @@ export class SystemJobService extends AbstractService {
       limit,
       total: count,
     });
+  }
+
+  async updateJob(item: SysJobUpdateReqDto): Promise<void> {
+    await this.entityManager.update(
+      SysJobEntity,
+      { id: item.id },
+      omit(item, 'id'),
+    );
   }
 }

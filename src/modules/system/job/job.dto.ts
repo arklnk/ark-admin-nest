@@ -21,6 +21,13 @@ export class SysJobAddReqDto {
   status: number;
 }
 
+export class SysJobUpdateReqDto extends SysJobAddReqDto {
+  @NumberField({
+    min: 1,
+  })
+  id: number;
+}
+
 export class SysJobDeleteReqDto {
   @NumberField({
     min: 1,

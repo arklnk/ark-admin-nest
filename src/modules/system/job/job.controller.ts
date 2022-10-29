@@ -4,6 +4,7 @@ import {
   SysJobAddReqDto,
   SysJobDeleteReqDto,
   SysJobItemRespDto,
+  SysJobUpdateReqDto,
 } from './job.dto';
 import { SystemJobService } from './job.service';
 import { PageOptionsDto } from '/@/common/dto/page-options.dto';
@@ -37,5 +38,11 @@ export class SystemJobController {
   })
   async page(@Query() query: PageOptionsDto) {
     return await this.jobService.getJobByPage(query.page, query.limit);
+  }
+
+  @Post('update')
+  @ApiOkResponse()
+  async update(@Body() body: SysJobUpdateReqDto) {
+    await this.jobService.updateJob(body);
   }
 }
