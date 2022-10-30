@@ -18,11 +18,7 @@ module.exports = function (options, webpack) {
       new webpack.WatchIgnorePlugin({
         paths: [/\.js$/, /\.d\.ts$/],
       }),
-      new RunScriptWebpackPlugin({ name: 'main.hmr.js', autoRestart: false }),
+      new RunScriptWebpackPlugin({ name: options.output.filename, autoRestart: true }),
     ],
-    output: {
-      path: path.join(__dirname, 'dist'),
-      filename: 'main.hmr.js',
-    },
   };
 };
