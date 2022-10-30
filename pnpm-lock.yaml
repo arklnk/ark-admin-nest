@@ -19,6 +19,7 @@ specifiers:
   '@types/lodash': ^4.14.186
   '@types/node': ^16.11.65
   '@types/supertest': ^2.0.12
+  '@types/webpack-env': ^1.18.0
   '@typescript-eslint/eslint-plugin': ^5.40.0
   '@typescript-eslint/parser': ^5.40.0
   class-transformer: ^0.5.1
@@ -37,6 +38,7 @@ specifiers:
   prettier: ^2.7.1
   reflect-metadata: ^0.1.13
   rimraf: ^3.0.2
+  run-script-webpack-plugin: ^0.1.1
   rxjs: ^7.5.7
   source-map-support: ^0.5.21
   supertest: ^6.3.0
@@ -48,6 +50,7 @@ specifiers:
   typeorm: ^0.3.10
   typescript: ^4.8.4
   webpack: ^5.74.0
+  webpack-node-externals: ^3.0.0
 
 dependencies:
   '@liaoliaots/nestjs-redis': 9.0.3_mbrky6ngipmypnibem3hfffymy
@@ -82,6 +85,7 @@ devDependencies:
   '@types/lodash': 4.14.186
   '@types/node': 16.11.65
   '@types/supertest': 2.0.12
+  '@types/webpack-env': 1.18.0
   '@typescript-eslint/eslint-plugin': 5.40.0_25sstg4uu2sk4pm7xcyzuov7xq
   '@typescript-eslint/parser': 5.40.0_z4bbprzjrhnsfa24uvmcbu7f5q
   cross-env: 7.0.3
@@ -91,6 +95,7 @@ devDependencies:
   jest: 28.1.3_7fnffnpg6qxg3uvt2vx7t77ic4
   prettier: 2.7.1
   rimraf: 3.0.2
+  run-script-webpack-plugin: 0.1.1
   source-map-support: 0.5.21
   supertest: 6.3.0
   ts-jest: 28.0.8_fztrhi54teek7om3xmnfwid3mq
@@ -99,6 +104,7 @@ devDependencies:
   tsconfig-paths: 4.1.0
   typescript: 4.8.4
   webpack: 5.74.0
+  webpack-node-externals: 3.0.0
 
 packages:
 
@@ -1376,6 +1382,10 @@ packages:
     resolution: {integrity: sha512-X3HPWTwXRerBZS7Mo1k6vMVR1Z6zmJcDVn5O/31whe0tnjE4te6ZJSJGq1RiqHPjzPdMTfjCFogDJmwng9xHaQ==}
     dependencies:
       '@types/superagent': 4.1.15
+    dev: true
+
+  /@types/webpack-env/1.18.0:
+    resolution: {integrity: sha512-56/MAlX5WMsPVbOg7tAxnYvNYMMWr/QJiIp6BxVSW3JJXUVzzOn64qW8TzQyMSqSUFM2+PVI4aUHcHOzIz/1tg==}
     dev: true
 
   /@types/yargs-parser/21.0.0:
@@ -4555,6 +4565,11 @@ packages:
     resolution: {integrity: sha512-5l4VyZR86LZ/lDxZTR6jqL8AFE2S0IFLMP26AbjsLVADxHdhB/c0GUsH+y39UfCi3dzz8OlQuPmnaJOMoDHQBA==}
     dependencies:
       queue-microtask: 1.2.3
+    dev: true
+
+  /run-script-webpack-plugin/0.1.1:
+    resolution: {integrity: sha512-PrxBRLv1K9itDKMlootSCyGhdTU+KbKGJ2wF6/k0eyo6M0YGPC58HYbS/J/QsDiwM0t7G99WcuCqto0J7omOXA==}
+    engines: {node: '>=14'}
     dev: true
 
   /rxjs/6.6.7:
