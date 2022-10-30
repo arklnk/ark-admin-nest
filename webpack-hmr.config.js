@@ -4,15 +4,12 @@ const path = require('path');
 
 module.exports = function (options, webpack) {
   const entryFile = 'main.hmr';
+  const allowlist = ['webpack/hot/poll?100'];
 
   return {
     ...options,
-    entry: ['webpack/hot/poll?100', `./src/${entryFile}.ts`],
-    externals: [
-      nodeExternals({
-        allowlist: ['webpack/hot/poll?100'],
-      }),
-    ],
+    entry: [...allowlist, `./src/${entryFile}.ts`],
+    externals: [nodeExternals({ allowlist })],
     plugins: [
       ...options.plugins,
       new webpack.HotModuleReplacementPlugin(),
@@ -21,7 +18,7 @@ module.exports = function (options, webpack) {
       }),
       new RunScriptWebpackPlugin({
         name: `${entryFile}.js`,
-        autoRestart: false,
+        autoRestart: true,
       }),
     ],
     output: {
