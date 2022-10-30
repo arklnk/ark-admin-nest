@@ -62,6 +62,18 @@ export class SysDeptDeleteReqDto {
   id: number;
 }
 
+export class SysDeptUpdateReqDto extends SysDeptAddReqDto {
+  @NumberField({
+    int: true,
+    min: 1,
+  })
+  id: number;
+}
+
+//--------------------------------------------------------------------------------
+//------------------------------------- resp -------------------------------------
+//--------------------------------------------------------------------------------
+
 export class SysDeptItemRespDto {
   fullName: string;
   id: number;

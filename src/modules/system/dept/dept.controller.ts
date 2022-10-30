@@ -4,6 +4,7 @@ import {
   SysDeptAddReqDto,
   SysDeptDeleteReqDto,
   SysDeptItemRespDto,
+  SysDeptUpdateReqDto,
 } from './dept.dto';
 import { SystemDeptService } from './dept.service';
 import { wrapResponse } from '/@/common/utils/swagger';
@@ -36,5 +37,11 @@ export class SystemDeptController {
   })
   async list() {
     return await this.deptService.getDeptByList();
+  }
+
+  @Post('update')
+  @ApiOkResponse()
+  async update(@Body() body: SysDeptUpdateReqDto) {
+    await this.deptService.updateDept(body);
   }
 }

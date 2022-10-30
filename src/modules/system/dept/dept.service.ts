@@ -1,6 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import { isEmpty } from 'lodash';
-import { SysDeptAddReqDto, SysDeptItemRespDto } from './dept.dto';
+import { isEmpty, omit } from 'lodash';
+import {
+  SysDeptAddReqDto,
+  SysDeptItemRespDto,
+  SysDeptUpdateReqDto,
+} from './dept.dto';
 import { AbstractService } from '/@/common/abstract.service';
 import { SysDeptEntity } from '/@/entities/sys-dept.entity';
 import { ApiFailedException } from '/@/exceptions/api-failed.exception';
@@ -10,13 +14,8 @@ import { ErrorEnum } from '/@/constants/errorx';
 export class SystemDeptService extends AbstractService {
   async addDept(item: SysDeptAddReqDto): Promise<void> {
     if (item.parentId !== 0) {
-      const parent = await this.entityManager.findOne(SysDeptEntity, {
-        select: ['id'],
-        where: {
-          id: item.parentId,
-        },
-      });
-      if (isEmpty(parent)) {
+      const exists = await this.findItemExists(item.parentId);
+      if (!exists) {
         throw new ApiFailedException(ErrorEnum.ParentDeptIdErrorCode);
       }
     }
@@ -46,5 +45,30 @@ export class SystemDeptService extends AbstractService {
       },
     );
     return rows.toList();
+  }
+
+  async updateDept(item: SysDeptUpdateReqDto) {
+    if (item.parentId !== 0) {
+      const exists = await this.findItemExists(item.parentId);
+      if (!exists) {
+        throw new ApiFailedException(ErrorEnum.ParentDeptIdErrorCode);
+      }
+    }
+
+    await this.entityManager.update(
+      SysDeptEntity,
+      { id: item.id },
+      omit(item, 'id'),
+    );
+  }
+
+  async findItemExists(id: number): Promise<boolean> {
+    const parent = await this.entityManager.findOne(SysDeptEntity, {
+      select: ['id'],
+      where: {
+        id,
+      },
+    });
+    return !isEmpty(parent);
   }
 }
