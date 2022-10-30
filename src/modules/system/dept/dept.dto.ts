@@ -16,12 +16,14 @@ export class SysDeptAddReqDto {
 
   @NumberField({
     min: 0,
+    int: true,
     required: false,
   })
   orderNum?: number;
 
   @NumberField({
     min: 0,
+    int: true,
   })
   parentId: number;
 
@@ -33,12 +35,14 @@ export class SysDeptAddReqDto {
   @NumberField({
     min: 0,
     max: 1,
+    int: true,
   })
   status: number;
 
   @NumberField({
     min: 1,
     max: 3,
+    int: true,
   })
   type: number;
 
@@ -47,4 +51,12 @@ export class SysDeptAddReqDto {
     maxLength: 50,
   })
   uniqueKey: string;
+}
+
+export class SysDeptDeleteReqDto {
+  @NumberField({
+    int: true,
+    min: 1,
+  })
+  id: number;
 }

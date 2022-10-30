@@ -23,4 +23,8 @@ export class SystemDeptService extends AbstractService {
 
     await this.entityManager.insert(SysDeptEntity, item);
   }
+
+  async deleteDept(id: number): Promise<void> {
+    await this.entityManager.delete(SysDeptEntity, { id });
+  }
 }
