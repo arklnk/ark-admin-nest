@@ -40,3 +40,8 @@ export enum SysMenuTypeEnum {
    */
   Permission = 2,
 }
+
+export enum BoolTypeEnum {
+  False = 0,
+  True = 1,
+}
