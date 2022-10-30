@@ -1,7 +1,9 @@
 const nodeExternals = require('webpack-node-externals');
 const { RunScriptWebpackPlugin } = require('run-script-webpack-plugin');
+const path = require('path');
 
 module.exports = function (options, webpack) {
+  console.log(options.output.filename);
   return {
     ...options,
     entry: ['webpack/hot/poll?100', './src/main.hmr.ts'],
@@ -16,7 +18,11 @@ module.exports = function (options, webpack) {
       new webpack.WatchIgnorePlugin({
         paths: [/\.js$/, /\.d\.ts$/],
       }),
-      new RunScriptWebpackPlugin({ name: options.output.filename, autoRestart: false }),
+      new RunScriptWebpackPlugin({ name: 'main.hmr.js', autoRestart: false }),
     ],
+    output: {
+      path: path.join(__dirname, 'dist'),
+      filename: 'main.hmr.js',
+    },
   };
 };
