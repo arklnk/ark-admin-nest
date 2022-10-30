@@ -9,7 +9,12 @@ export class SysDeptEntity extends AbstractEntity {
   @Column({ type: 'varchar', length: 50, comment: '部门简称' })
   name: string;
 
-  @Column({ type: 'varchar', length: 50, comment: '部门全称' })
+  @Column({
+    name: 'full_name',
+    type: 'varchar',
+    length: 50,
+    comment: '部门全称',
+  })
   fullName: string;
 
   @Column({
