@@ -11,12 +11,27 @@ import {
 import { Injectable } from '@nestjs/common';
 import { AbstractService } from '/@/common/abstract.service';
 import { SysDictionaryEntity } from '/@/entities/sys-dictionary.entity';
-import { omit } from 'lodash';
+import { isEmpty, omit } from 'lodash';
+import { ApiFailedException } from '/@/exceptions/api-failed.exception';
+import { ErrorEnum } from '/@/constants/errorx';
 
 @Injectable()
 export class ConfigDictService extends AbstractService {
-  async addConfigDict(body: ConfigDictAddReqDto): Promise<void> {
-    await this.entityManager.insert(SysDictionaryEntity, body);
+  async addConfigDict(item: ConfigDictAddReqDto): Promise<void> {
+    if (item.parentId !== 0) {
+      // if dict data, check parent dict is exists
+      const parent = await this.entityManager.findOne(SysDictionaryEntity, {
+        select: ['id'],
+        where: {
+          parentId: 0,
+          id: item.parentId,
+        },
+      });
+      if (isEmpty(parent)) {
+        throw new ApiFailedException(ErrorEnum.ParentDictionaryIdErrorCode);
+      }
+    }
+    await this.entityManager.insert(SysDictionaryEntity, item);
   }
 
   async getConfigDictDataByPage(
