@@ -62,7 +62,25 @@ export class AppConfigService {
     }
 
     // entities load
-    const entities = [__dirname + '/../../entities/**/*.entity{.ts,.js}'];
+    let entities = [__dirname + '/../../entities/**/*.entity{.ts,.js}'];
+
+    // webpack is not compatible with glob static paths (e.g., the entities property in TypeOrmModule).
+    // support to hmr
+    if (module.hot) {
+      const entityContext = require.context(
+        './../../entities',
+        true,
+        /\.entity\.ts$/,
+      );
+
+      // loading entity class
+      entities = entityContext.keys().map((id) => {
+        const entityModule = entityContext<Recordable>(id);
+        const [entity] = Object.values(entityModule);
+
+        return entity as string;
+      });
+    }
 
     return {
       type: 'mysql',

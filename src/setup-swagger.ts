@@ -2,7 +2,6 @@ import { INestApplication, Logger } from '@nestjs/common';
 import type { AppConfigService } from './shared/services/app-config.service';
 
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import { join } from 'path';
 import { API_SECURITY_AUTH } from './decorators/swagger.decorator';
 
 /**
@@ -15,13 +14,7 @@ export function setupSwagger(
   const { enable, path } = config.swaggerConfig;
   if (!enable) return;
 
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const packageInfo = require(join(process.cwd(), 'package.json'));
-
-  const documentBuilder = new DocumentBuilder()
-    .setTitle(`Api Documentation`)
-    .setVersion(`v${packageInfo.version}`)
-    .setDescription(packageInfo.description);
+  const documentBuilder = new DocumentBuilder().setTitle(`Api Documentation`);
 
   // auth security
   documentBuilder.addSecurity(API_SECURITY_AUTH, {
