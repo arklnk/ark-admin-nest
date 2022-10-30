@@ -3,7 +3,6 @@ const { RunScriptWebpackPlugin } = require('run-script-webpack-plugin');
 const path = require('path');
 
 module.exports = function (options, webpack) {
-  console.log(options.output.filename);
   return {
     ...options,
     entry: ['webpack/hot/poll?100', './src/main.hmr.ts'],
