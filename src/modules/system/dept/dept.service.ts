@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { isEmpty } from 'lodash';
-import { SysDeptAddReqDto } from './dept.dto';
+import { SysDeptAddReqDto, SysDeptItemRespDto } from './dept.dto';
 import { AbstractService } from '/@/common/abstract.service';
 import { SysDeptEntity } from '/@/entities/sys-dept.entity';
 import { ApiFailedException } from '/@/exceptions/api-failed.exception';
@@ -26,5 +26,25 @@ export class SystemDeptService extends AbstractService {
 
   async deleteDept(id: number): Promise<void> {
     await this.entityManager.delete(SysDeptEntity, { id });
+  }
+
+  async getDeptByList() {
+    const rows = await this.entityManager.find<SysDeptItemRespDto>(
+      SysDeptEntity,
+      {
+        select: [
+          'fullName',
+          'id',
+          'name',
+          'orderNum',
+          'parentId',
+          'remark',
+          'status',
+          'type',
+          'uniqueKey',
+        ],
+      },
+    );
+    return rows.toList();
   }
 }
