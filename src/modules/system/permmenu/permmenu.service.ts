@@ -1,21 +1,27 @@
 import { RedisService } from '@liaoliaots/nestjs-redis';
 import { Injectable } from '@nestjs/common';
-import { isEmpty, uniq } from 'lodash';
+import { uniq } from 'lodash';
 import { In } from 'typeorm';
-import { SysPermMenuItemRespDto } from './permmenu.dto';
+import {
+  SysPermMenuDeleteReqDto,
+  SysPermMenuItemRespDto,
+} from './permmenu.dto';
 import { AbstractService } from '/@/common/abstract.service';
 import { UserRoleCahcePrefix } from '/@/constants/cache';
+import { ErrorEnum } from '/@/constants/errorx';
 import { BoolTypeEnum } from '/@/constants/type';
 import { SysPermMenuEntity } from '/@/entities/sys-perm-menu.entity';
 import { SysRoleEntity } from '/@/entities/sys-role.entity';
-import { SysUserEntity } from '/@/entities/sys-user.entity';
+import { ApiFailedException } from '/@/exceptions/api-failed.exception';
 import { AppConfigService } from '/@/shared/services/app-config.service';
+import { AuthInspectService } from '/@/shared/services/auth-inspect.service';
 
 @Injectable()
 export class SystemPermMenuService extends AbstractService {
   constructor(
-    private configService: AppConfigService,
+    private inspectService: AuthInspectService,
     private redisService: RedisService,
+    private configService: AppConfigService,
   ) {
     super();
   }
@@ -39,16 +45,8 @@ export class SystemPermMenuService extends AbstractService {
 
     // super admin does not cache the role ids
     // need to query the admin identity
-    const user = await this.entityManager.findOne(SysUserEntity, {
-      select: ['roleIds'],
-      where: {
-        id: uid,
-      },
-    });
-    if (isEmpty(user)) {
-      throw new Error(`user id: ${uid} is not exists`);
-    }
-    if (user.roleIds.includes(this.configService.appConfig.rootRoleId)) {
+    const isSuperAdmin = await this.inspectService.inspectSuperAdmin(uid);
+    if (isSuperAdmin) {
       return permmenus
         .map((e) => new SysPermMenuItemRespDto(e, BoolTypeEnum.True))
         .toList();
@@ -82,5 +80,63 @@ export class SystemPermMenuService extends AbstractService {
         return new SysPermMenuItemRespDto(e, has);
       })
       .toList();
+  }
+
+  async deletePermMenu(
+    uid: number,
+    item: SysPermMenuDeleteReqDto,
+  ): Promise<void> {
+    // check is protect id
+    if (item.id <= this.configService.appConfig.protectSysPermMenuMaxId) {
+      throw new ApiFailedException(ErrorEnum.ForbiddenErrorCode);
+    }
+
+    // check has children
+    const count = await this.entityManager.count(SysPermMenuEntity, {
+      where: {
+        parentId: item.id,
+      },
+    });
+    if (count > 0) {
+      throw new ApiFailedException(ErrorEnum.DeletePermMenuErrorCode);
+    }
+
+    // check user has permmenu id to delete
+    const isSuperAdmin = await this.inspectService.inspectSuperAdmin(uid);
+    let hasDeleteOperate = true;
+
+    if (!isSuperAdmin) {
+      const permmenuIds = await this.getUserPermMenuIds(uid);
+      hasDeleteOperate = permmenuIds.includes(item.id);
+    }
+
+    if (!isSuperAdmin && !hasDeleteOperate) {
+      throw new ApiFailedException(ErrorEnum.NotPermMenuErrorCode);
+    }
+
+    await this.entityManager.delete(SysPermMenuEntity, { id: item.id });
+  }
+
+  async getUserPermMenuIds(uid: number): Promise<number[]> {
+    const roleIdsStr = await this.redisService
+      .getClient()
+      .get(`${UserRoleCahcePrefix}${uid}`);
+
+    const roleIds: number[] = JSON.parse(roleIdsStr);
+
+    const rolesInfo = await this.entityManager.find(SysRoleEntity, {
+      select: ['permmenuIds'],
+      where: {
+        id: In(roleIds),
+      },
+    });
+
+    let userHasPermMenuIds: number[] = [];
+    rolesInfo.forEach((e) => {
+      userHasPermMenuIds.push(...e.permmenuIds);
+    });
+    userHasPermMenuIds = uniq(userHasPermMenuIds);
+
+    return userHasPermMenuIds;
   }
 }

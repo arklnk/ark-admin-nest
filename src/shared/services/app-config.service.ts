@@ -30,6 +30,10 @@ export class AppConfigService {
       globalPrefix: this.getString('GLOBAL_PREFIX'),
       rootRoleId: this.getNumber('ROOT_ROLE_ID'),
       userPwdSalt: this.getString('USER_PWD_SALT'),
+      protectSysPermMenuMaxId: this.getNumber('PROTECT_SYS_PERMMENU_MAX_ID'),
+      protectSysDictionaryMaxId: this.getNumber(
+        'PROTECT_SYS_DICTIONARY_MAX_ID',
+      ),
     };
   }
 

@@ -1,6 +1,9 @@
-import { Controller, Get } from '@nestjs/common';
+import { Body, Controller, Get, Post } from '@nestjs/common';
 import { ApiOkResponse, ApiTags } from '@nestjs/swagger';
-import { SysPermMenuItemRespDto } from './permmenu.dto';
+import {
+  SysPermMenuDeleteReqDto,
+  SysPermMenuItemRespDto,
+} from './permmenu.dto';
 import { SystemPermMenuService } from './permmenu.service';
 import { wrapResponse } from '/@/common/utils/swagger';
 import { AuthUser } from '/@/decorators/auth-user.decorator';
@@ -21,5 +24,16 @@ export class SystemPermMenuController {
   })
   async list(@AuthUser('uid') uid: number) {
     return await this.pmService.getPermMenuByList(uid);
+  }
+
+  @Post('delete')
+  @ApiOkResponse({
+    type: wrapResponse(),
+  })
+  async delete(
+    @AuthUser('uid') uid: number,
+    @Body() body: SysPermMenuDeleteReqDto,
+  ) {
+    await this.pmService.deletePermMenu(uid, body);
   }
 }

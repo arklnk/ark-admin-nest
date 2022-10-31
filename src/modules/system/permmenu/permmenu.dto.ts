@@ -1,4 +1,17 @@
+import { NumberField } from '/@/decorators/field.decorator';
 import { SysPermMenuEntity } from '/@/entities/sys-perm-menu.entity';
+
+export class SysPermMenuDeleteReqDto {
+  @NumberField({
+    int: true,
+    min: 1,
+  })
+  id: number;
+}
+
+//--------------------------------------------------------------------------------
+//------------------------------------- resp -------------------------------------
+//--------------------------------------------------------------------------------
 
 export class SysPermMenuItemRespDto {
   activeRouter: string;
