@@ -7,7 +7,11 @@ import { castArray, isArray, isNil, trim } from 'lodash';
 export function ToNumber(): PropertyDecorator {
   return Transform(
     (params) => {
-      const value = params.value as string;
+      const value = params.value as string[] | string;
+
+      if (isArray(value)) {
+        return value.map((v) => Number(v));
+      }
 
       return Number(value);
     },
@@ -21,7 +25,11 @@ export function ToNumber(): PropertyDecorator {
 export function ToInt(): PropertyDecorator {
   return Transform(
     (params) => {
-      const value = params.value as string;
+      const value = params.value as string[] | string;
+
+      if (isArray(value)) {
+        return value.map((v) => Number.parseInt(v));
+      }
 
       return Number.parseInt(value);
     },

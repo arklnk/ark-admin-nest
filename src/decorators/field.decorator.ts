@@ -35,12 +35,21 @@ interface INumberFieldOptions extends IOptionalOptions {
   max?: number;
   positive?: boolean;
 }
+
+interface IStringFieldOptions extends IOptionalOptions {
+  each?: boolean;
+  minLength?: number;
+  maxLength?: number;
+  lowerCase?: boolean;
+  upperCase?: boolean;
+}
+
 export function NumberField(
   options: INumberFieldOptions = {},
 ): PropertyDecorator {
-  const decorators = [ToNumber()];
-
   const { each, min, max, int, positive, required = true } = options;
+
+  const decorators = [ToNumber()];
 
   if (each) {
     decorators.push(ToArray());
@@ -71,18 +80,11 @@ export function NumberField(
   return applyDecorators(...decorators);
 }
 
-interface IStringFieldOptions extends IOptionalOptions {
-  minLength?: number;
-  maxLength?: number;
-  lowerCase?: boolean;
-  upperCase?: boolean;
-}
 export function StringField(
   options: IStringFieldOptions = {},
 ): PropertyDecorator {
-  const decorators = [IsNotEmpty(), IsString(), ToTrim()];
-
   const {
+    each,
     minLength,
     maxLength,
     lowerCase,
@@ -90,12 +92,18 @@ export function StringField(
     required = true,
   } = options;
 
+  const decorators = [IsNotEmpty({ each }), IsString({ each }), ToTrim()];
+
+  if (each) {
+    decorators.push(ToArray());
+  }
+
   if (isNumber(minLength)) {
-    decorators.push(MinLength(minLength));
+    decorators.push(MinLength(minLength, { each }));
   }
 
   if (isNumber(maxLength)) {
-    decorators.push(MaxLength(maxLength));
+    decorators.push(MaxLength(maxLength, { each }));
   }
 
   if (lowerCase) {
