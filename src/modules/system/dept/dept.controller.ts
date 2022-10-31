@@ -17,13 +17,17 @@ export class SystemDeptController {
   constructor(private deptService: SystemDeptService) {}
 
   @Post('add')
-  @ApiOkResponse()
+  @ApiOkResponse({
+    type: wrapResponse(),
+  })
   async add(@Body() body: SysDeptAddReqDto) {
     await this.deptService.addDept(body);
   }
 
   @Post('delete')
-  @ApiOkResponse()
+  @ApiOkResponse({
+    type: wrapResponse(),
+  })
   async delete(@Body() body: SysDeptDeleteReqDto) {
     await this.deptService.deleteDept(body.id);
   }
@@ -40,7 +44,9 @@ export class SystemDeptController {
   }
 
   @Post('update')
-  @ApiOkResponse()
+  @ApiOkResponse({
+    type: wrapResponse(),
+  })
   async update(@Body() body: SysDeptUpdateReqDto) {
     await this.deptService.updateDept(body);
   }

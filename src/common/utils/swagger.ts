@@ -2,94 +2,87 @@ import type {
   IBaseResponse,
   IPaginationRespData,
   IListRespData,
-  IPaginationInfo,
 } from '/@/interfaces/response';
 import type { ApiPropertyOptions } from '@nestjs/swagger';
 
 import { Type } from '@nestjs/common';
 import { ApiProperty } from '@nestjs/swagger';
+import { BaseResponse, PaginationInfo } from '../dto/base-response.dto';
 
 type WrapRespOptions = ApiPropertyOptions & {
   // data struct
   struct?: 'list' | 'page';
 };
 
-class PaginationInfo implements IPaginationInfo {
-  @ApiProperty()
-  page: number;
-
-  @ApiProperty()
-  limit: number;
-
-  @ApiProperty()
-  total: number;
-}
-
-function defineName(o: any, type: WrapRespOptions['type'], wrap: string): void {
-  const name = ((): string => {
-    if (typeof type === 'string') {
-      return type;
-    } else if (type instanceof Array) {
-      return type[0].name;
-    } else {
-      return type.name;
-    }
-  })();
-
-  Object.defineProperty(o, 'name', {
-    writable: true,
-    value: `${wrap}<${name}>`,
-  });
-}
-
 export const wrapResponse = <
   T,
   U extends Type<IBaseResponse<T | IPaginationRespData<T> | IListRespData<T>>>,
 >(
-  options: WrapRespOptions,
+  options?: WrapRespOptions,
 ): U => {
-  // process return data type
-  let dataType = options.type;
-
-  if (options.struct === 'list') {
-    // list resp
-    class ListDataClass<T> implements IListRespData {
-      @ApiProperty({ type: dataType, isArray: true })
-      list: T[];
-    }
-
-    defineName(ListDataClass, dataType, 'ListRespData');
-    dataType = ListDataClass;
-  } else if (options.struct === 'page') {
-    // page resp
-    class PageDataClass<T> implements IPaginationRespData {
-      @ApiProperty()
-      pagination: PaginationInfo;
-
-      @ApiProperty({ type: dataType, isArray: true })
-      list: T[];
-    }
-
-    defineName(PageDataClass, dataType, 'PaginationRespData');
-    dataType = PageDataClass;
+  // if opt or type not define
+  if (!options || !options.type) {
+    return BaseResponse as unknown as U;
   }
 
-  // base response
-  class BaseRespClass<Data = T | IPaginationRespData<T> | IListRespData<T>>
-    implements IBaseResponse<Data>
-  {
-    @ApiProperty()
-    msg: string;
+  /**
+   * define swagger schema name
+   */
+  function defineSchemaName(o: any, type: WrapRespOptions['type']): void {
+    const name = ((): string => {
+      if (typeof type === 'string') {
+        return type;
+      } else if (type instanceof Array) {
+        return type[0].name;
+      } else {
+        return type.name;
+      }
+    })();
 
-    @ApiProperty()
-    code: number;
+    Object.defineProperty(o, 'name', {
+      writable: true,
+      value: `${o.name}<${name}>`,
+    });
+  }
 
-    @ApiProperty({ ...options, type: dataType })
+  // process return data type
+  let wrapDataType = options.type;
+
+  // process specifydata struct
+  switch (options.struct) {
+    case 'list':
+      class ResponseListDataWrap<T> implements IListRespData {
+        @ApiProperty({ type: wrapDataType, isArray: true })
+        list: T[];
+      }
+
+      defineSchemaName(ResponseListDataWrap, wrapDataType);
+      wrapDataType = ResponseListDataWrap;
+      break;
+
+    case 'page':
+      class ResponsePageDataWrap<T> implements IPaginationRespData {
+        @ApiProperty()
+        pagination: PaginationInfo;
+
+        @ApiProperty({ type: wrapDataType, isArray: true })
+        list: T[];
+      }
+
+      defineSchemaName(ResponsePageDataWrap, wrapDataType);
+      wrapDataType = ResponsePageDataWrap;
+      break;
+  }
+
+  // wrap response
+  class BaseResponseWrap<
+    Data = T | IPaginationRespData<T> | IListRespData<T>,
+  > extends BaseResponse<Data> {
+    @ApiProperty({ ...options, type: wrapDataType })
     data: Data;
   }
 
   // generate data type name
-  defineName(BaseRespClass, dataType, 'BaseResponse');
-
-  return BaseRespClass as unknown as U;
+  defineSchemaName(BaseResponseWrap, wrapDataType);
+  return BaseResponseWrap as unknown as U;
 };

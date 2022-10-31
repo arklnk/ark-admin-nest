@@ -66,7 +66,9 @@ export class UserController {
   @Post('logout')
   @ApiSecurityAuth()
   @AllowAnonPermission()
-  @ApiOkResponse()
+  @ApiOkResponse({
+    type: wrapResponse(),
+  })
   async logout(@AuthUser('uid') uid: number) {
     await this.userService.userLogout(uid);
   }
@@ -98,7 +100,9 @@ export class UserController {
   @Post('profile/update')
   @ApiSecurityAuth()
   @AllowAnonPermission()
-  @ApiOkResponse()
+  @ApiOkResponse({
+    type: wrapResponse(),
+  })
   async profileUpdate(
     @AuthUser('uid') uid: number,
     @Body() body: UserProfileUpdateReqDto,
@@ -121,7 +125,9 @@ export class UserController {
   @Post('password/update')
   @AllowAnonPermission()
   @ApiSecurityAuth()
-  @ApiOkResponse()
+  @ApiOkResponse({
+    type: wrapResponse(),
+  })
   async passwordUpdate(
     @AuthUser('uid') uid: number,
     @Body() body: UserPasswordUpdateReqDto,

@@ -17,8 +17,10 @@ import { ApiSecurityAuth } from '/@/decorators/swagger.decorator';
 export class ConfigDictController {
   constructor(private dictService: ConfigDictService) {}
 
-  @ApiOkResponse()
   @Post('add')
+  @ApiOkResponse({
+    type: wrapResponse(),
+  })
   async add(@Body() body: ConfigDictAddReqDto) {
     await this.dictService.addConfigDict(body);
   }
@@ -50,13 +52,17 @@ export class ConfigDictController {
   }
 
   @Post('delete')
-  @ApiOkResponse()
+  @ApiOkResponse({
+    type: wrapResponse(),
+  })
   async delete(@Body() body: ConfigDictIdDto) {
     await this.dictService.deleteConfigDict(body.id);
   }
 
   @Post('update')
-  @ApiOkResponse()
+  @ApiOkResponse({
+    type: wrapResponse(),
+  })
   async update(@Body() body: ConfigDictUpdateReqDto) {
     await this.dictService.updateConfigDict(body);
   }

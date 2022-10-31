@@ -18,13 +18,17 @@ export class SystemProfessionController {
   constructor(private profService: SystemProfessionService) {}
 
   @Post('add')
-  @ApiOkResponse()
+  @ApiOkResponse({
+    type: wrapResponse(),
+  })
   async add(@Body() body: SysProfessionAddReqDto) {
     await this.profService.addProfession(body);
   }
 
   @Post('delete')
-  @ApiOkResponse()
+  @ApiOkResponse({
+    type: wrapResponse(),
+  })
   async delete(@Body() body: SysProfessionDeleteReqDto) {
     await this.profService.deleteProfession(body.id);
   }
@@ -41,7 +45,9 @@ export class SystemProfessionController {
   }
 
   @Post('update')
-  @ApiOkResponse()
+  @ApiOkResponse({
+    type: wrapResponse(),
+  })
   async update(@Body() body: SysProfessionUpdateReqDto) {
     await this.profService.updateProfession(body);
   }

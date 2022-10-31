@@ -18,13 +18,17 @@ export class SystemJobController {
   constructor(private jobService: SystemJobService) {}
 
   @Post('add')
-  @ApiOkResponse()
+  @ApiOkResponse({
+    type: wrapResponse(),
+  })
   async add(@Body() body: SysJobAddReqDto) {
     await this.jobService.addJob(body);
   }
 
   @Post('delete')
-  @ApiOkResponse()
+  @ApiOkResponse({
+    type: wrapResponse(),
+  })
   async delete(@Body() body: SysJobDeleteReqDto) {
     await this.jobService.deleteJob(body.id);
   }
@@ -41,7 +45,9 @@ export class SystemJobController {
   }
 
   @Post('update')
-  @ApiOkResponse()
+  @ApiOkResponse({
+    type: wrapResponse(),
+  })
   async update(@Body() body: SysJobUpdateReqDto) {
     await this.jobService.updateJob(body);
   }
