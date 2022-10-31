@@ -1,4 +1,5 @@
-import { NumberField } from '/@/decorators/field.decorator';
+import { ArrayNotEmpty } from 'class-validator';
+import { NumberField, StringField } from '/@/decorators/field.decorator';
 import { SysPermMenuEntity } from '/@/entities/sys-perm-menu.entity';
 
 export class SysPermMenuDeleteReqDto {
@@ -7,6 +8,59 @@ export class SysPermMenuDeleteReqDto {
     min: 1,
   })
   id: number;
+}
+
+export class SysPermMenuAddReqDto {
+  @StringField({
+    required: false,
+  })
+  activeRouter?: string;
+
+  @StringField()
+  icon: string;
+
+  @NumberField({
+    int: true,
+    min: 0,
+    max: 1,
+  })
+  isShow: number;
+
+  @StringField({
+    minLength: 2,
+    maxLength: 50,
+  })
+  name: string;
+
+  @NumberField({
+    required: false,
+  })
+  orderNum?: number;
+
+  @NumberField({
+    int: true,
+    min: 0,
+  })
+  parentId: number;
+
+  @StringField({
+    each: true,
+  })
+  @ArrayNotEmpty()
+  perms: string[];
+
+  @StringField()
+  router: string;
+
+  @NumberField({
+    int: true,
+    min: 0,
+    max: 2,
+  })
+  type: number;
+
+  @StringField()
+  viewPath: string;
 }
 
 //--------------------------------------------------------------------------------

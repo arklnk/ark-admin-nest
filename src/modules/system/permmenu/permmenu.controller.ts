@@ -1,6 +1,7 @@
 import { Body, Controller, Get, Post } from '@nestjs/common';
 import { ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import {
+  SysPermMenuAddReqDto,
   SysPermMenuDeleteReqDto,
   SysPermMenuItemRespDto,
 } from './permmenu.dto';
@@ -35,5 +36,13 @@ export class SystemPermMenuController {
     @Body() body: SysPermMenuDeleteReqDto,
   ) {
     await this.pmService.deletePermMenu(uid, body);
+  }
+
+  @Post('add')
+  @ApiOkResponse({
+    type: wrapResponse(),
+  })
+  async add(@AuthUser('uid') uid: number, @Body() body: SysPermMenuAddReqDto) {
+    await this.pmService.addPermMenu(uid, body);
   }
 }
