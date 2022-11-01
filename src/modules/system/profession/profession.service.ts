@@ -6,7 +6,10 @@ import {
   SysProfessionItemRespDto,
 } from './profession.dto';
 import { AbstractService } from '/@/common/abstract.service';
+import { ErrorEnum } from '/@/constants/errorx';
 import { SysProfessionEntity } from '/@/entities/sys-profession.entity';
+import { SysUserEntity } from '/@/entities/sys-user.entity';
+import { ApiFailedException } from '/@/exceptions/api-failed.exception';
 
 @Injectable()
 export class SystemProfessionService extends AbstractService {
@@ -15,6 +18,16 @@ export class SystemProfessionService extends AbstractService {
   }
 
   async deleteProfession(id: number): Promise<void> {
+    const count = await this.entityManager.count(SysUserEntity, {
+      where: {
+        professionId: id,
+      },
+    });
+
+    if (count > 0) {
+      throw new ApiFailedException(ErrorEnum.DeleteProfessionErrorCode);
+    }
+
     await this.entityManager.delete(SysProfessionEntity, { id });
   }
 
