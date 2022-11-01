@@ -9,6 +9,7 @@ import { AbstractService } from '/@/common/abstract.service';
 import { SysDeptEntity } from '/@/entities/sys-dept.entity';
 import { ApiFailedException } from '/@/exceptions/api-failed.exception';
 import { ErrorEnum } from '/@/constants/errorx';
+import { SysUserEntity } from '/@/entities/sys-user.entity';
 
 @Injectable()
 export class SystemDeptService extends AbstractService {
@@ -24,6 +25,24 @@ export class SystemDeptService extends AbstractService {
   }
 
   async deleteDept(id: number): Promise<void> {
+    const countChild = await this.entityManager.count(SysDeptEntity, {
+      where: {
+        parentId: id,
+      },
+    });
+    if (countChild > 0) {
+      throw new ApiFailedException(ErrorEnum.DeleteDeptErrorCode);
+    }
+
+    const countUse = await this.entityManager.count(SysUserEntity, {
+      where: {
+        deptId: id,
+      },
+    });
+    if (countUse > 0) {
+      throw new ApiFailedException(ErrorEnum.DeptHasUserErrorCode);
+    }
+
     await this.entityManager.delete(SysDeptEntity, { id });
   }
 
