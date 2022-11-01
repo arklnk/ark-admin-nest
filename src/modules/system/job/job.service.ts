@@ -6,7 +6,10 @@ import {
   SysJobUpdateReqDto,
 } from './job.dto';
 import { AbstractService } from '/@/common/abstract.service';
+import { ErrorEnum } from '/@/constants/errorx';
 import { SysJobEntity } from '/@/entities/sys-job.entity';
+import { SysUserEntity } from '/@/entities/sys-user.entity';
+import { ApiFailedException } from '/@/exceptions/api-failed.exception';
 
 @Injectable()
 export class SystemJobService extends AbstractService {
@@ -15,6 +18,16 @@ export class SystemJobService extends AbstractService {
   }
 
   async deleteJob(id: number): Promise<void> {
+    const count = await this.entityManager.count(SysUserEntity, {
+      where: {
+        jobId: id,
+      },
+    });
+
+    if (count > 0) {
+      throw new ApiFailedException(ErrorEnum.DeleteJobErrorCode);
+    }
+
     await this.entityManager.delete(SysJobEntity, { id });
   }
 
