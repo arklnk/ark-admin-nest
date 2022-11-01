@@ -13,7 +13,7 @@ export class AuthInspectService {
   constructor(private configService: AppConfigService) {}
 
   /**
-   * @description Check whether the administrator is the super administrator
+   * @description 检查当前用户是否为超级管理员
    */
   async inspectSuperAdmin(uid: number, roleIds?: number[]): Promise<boolean> {
     if (!Array.isArray(roleIds)) {
@@ -32,5 +32,19 @@ export class AuthInspectService {
     }
 
     return roleIds.includes(this.configService.appConfig.rootRoleId);
+  }
+
+  /**
+   * @description 获取所有的超级管理员用户ID列表
+   */
+  async getAllSuperAdminUserIds(): Promise<number[]> {
+    const users = await this.entityManager
+      .createQueryBuilder(SysUserEntity, 'user')
+      .select(['user.id'])
+      .where('JSON_CONTAINS(user.role_ids, CONCAT(:id))', {
+        id: this.configService.appConfig.rootRoleId,
+      })
+      .getMany();
+    return users.map((u) => u.id);
   }
 }
