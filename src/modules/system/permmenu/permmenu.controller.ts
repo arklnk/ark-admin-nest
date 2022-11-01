@@ -4,6 +4,7 @@ import {
   SysPermMenuAddReqDto,
   SysPermMenuDeleteReqDto,
   SysPermMenuItemRespDto,
+  SysPermMenuUpdateReqDto,
 } from './permmenu.dto';
 import { SystemPermMenuService } from './permmenu.service';
 import { wrapResponse } from '/@/common/utils/swagger';
@@ -44,5 +45,16 @@ export class SystemPermMenuController {
   })
   async add(@AuthUser('uid') uid: number, @Body() body: SysPermMenuAddReqDto) {
     await this.pmService.addPermMenu(uid, body);
+  }
+
+  @Post('update')
+  @ApiOkResponse({
+    type: wrapResponse(),
+  })
+  async update(
+    @AuthUser('uid') uid: number,
+    @Body() body: SysPermMenuUpdateReqDto,
+  ) {
+    await this.pmService.updatePermMenu(uid, body);
   }
 }

@@ -6,6 +6,7 @@ import {
   SysPermMenuAddReqDto,
   SysPermMenuDeleteReqDto,
   SysPermMenuItemRespDto,
+  SysPermMenuUpdateReqDto,
 } from './permmenu.dto';
 import { AbstractService } from '/@/common/abstract.service';
 import { UserPermCachePrefix, UserRoleCahcePrefix } from '/@/constants/cache';
@@ -84,7 +85,7 @@ export class SystemPermMenuService extends AbstractService {
       throw new ApiFailedException(ErrorEnum.DeletePermMenuErrorCode);
     }
 
-    // 判断用户是否具备该权限才可进行删除操作
+    // 判断用户是否在该权限菜单的管理范围内才可进行删除操作
     const isSuperAdmin = await this.inspectService.inspectSuperAdmin(uid);
     let hasDeleteOperate = true;
 
@@ -101,33 +102,87 @@ export class SystemPermMenuService extends AbstractService {
   }
 
   async addPermMenu(uid: number, item: SysPermMenuAddReqDto): Promise<void> {
-    const isExceed = await this.checkUserPermissionExceed(uid, item.perms);
-    if (isExceed) {
-      throw new ApiFailedException(ErrorEnum.NotPermMenuErrorCode);
-    }
+    await this.checkUserPermissionExceed(uid, item.perms);
 
-    // 检查parentId合法性
-    if (item.parentId !== TREE_ROOT_NODE_ID) {
-      const parent = await this.entityManager.findOne(SysPermMenuEntity, {
-        select: ['id', 'type'],
-        where: {
-          id: item.parentId,
-        },
-      });
-
-      if (isEmpty(parent)) {
-        throw new ApiFailedException(ErrorEnum.ParentPermMenuIdErrorCode);
-      }
-
-      if (parent.type === SysMenuTypeEnum.Permission) {
-        throw new ApiFailedException(ErrorEnum.SetParentTypeErrorCode);
-      }
-    }
+    await this.checkPermMenuParentInvalid(item.parentId);
 
     await this.entityManager.insert(SysPermMenuEntity, {
       ...omit(item, 'perms'),
       perms: JSON.stringify(item.perms),
     });
+  }
+
+  async updatePermMenu(
+    uid: number,
+    item: SysPermMenuUpdateReqDto,
+  ): Promise<void> {
+    // 检查是否为保护的保护的菜单ID
+    if (item.id <= this.configService.appConfig.protectSysPermMenuMaxId) {
+      throw new ApiFailedException(ErrorEnum.ForbiddenErrorCode);
+    }
+
+    await this.checkUserPermissionExceed(uid, item.perms);
+
+    if (item.id === item.parentId) {
+      throw new ApiFailedException(ErrorEnum.ParentPermMenuErrorCode);
+    }
+
+    await this.checkPermMenuParentInvalid(item.parentId);
+
+    // 查找未修改前权限菜单ID所有的子项，防止将父级菜单修改成自己的子项导致数据丢失
+    let lastQueryIds: number[] = [item.id];
+    let allSubPermMenuIds: number[] = [];
+
+    do {
+      const pmIds = await this.entityManager
+        .createQueryBuilder(SysPermMenuEntity, 'perm_menu')
+        .select(['perm_menu.id'])
+        .where('FIND_IN_SET(parent_id, :ids)', {
+          ids: lastQueryIds.join(','),
+        })
+        .getMany();
+
+      lastQueryIds = pmIds.map((e) => e.id);
+      allSubPermMenuIds.push(...lastQueryIds);
+    } while (lastQueryIds.length > 0);
+
+    // 查重
+    allSubPermMenuIds = uniq(allSubPermMenuIds);
+
+    if (allSubPermMenuIds.includes(item.parentId)) {
+      throw new ApiFailedException(ErrorEnum.SetParentIdErrorCode);
+    }
+
+    await this.entityManager.update(
+      SysPermMenuEntity,
+      { id: item.id },
+      {
+        ...omit(item, ['id', 'perms']),
+        perms: JSON.stringify(item.perms),
+      },
+    );
+  }
+
+  /**
+   * 检查父级权限菜单ID合法性，不存在或权限不能作为父级菜单
+   */
+  async checkPermMenuParentInvalid(pid: number): Promise<void> {
+    if (pid === TREE_ROOT_NODE_ID) return;
+
+    const parent = await this.entityManager.findOne(SysPermMenuEntity, {
+      select: ['id', 'type'],
+      where: {
+        id: pid,
+      },
+    });
+
+    if (isEmpty(parent)) {
+      throw new ApiFailedException(ErrorEnum.ParentPermMenuIdErrorCode);
+    }
+
+    if (parent.type === SysMenuTypeEnum.Permission) {
+      throw new ApiFailedException(ErrorEnum.SetParentTypeErrorCode);
+    }
   }
 
   /**
@@ -136,15 +191,18 @@ export class SystemPermMenuService extends AbstractService {
   async checkUserPermissionExceed(
     uid: number,
     permissions: string[],
-  ): Promise<boolean> {
+  ): Promise<void> {
     const isSuperAdmin = await this.inspectService.inspectSuperAdmin(uid);
-    if (isSuperAdmin) return false;
+    if (isSuperAdmin) return;
 
     const cachePerms: string[] = JSON.parse(
       await this.redisService.getClient().get(`${UserPermCachePrefix}${uid}`),
     );
 
-    return permissions.some((e) => !cachePerms.includes(e));
+    const exceed = permissions.some((e) => !cachePerms.includes(e));
+    if (exceed) {
+      throw new ApiFailedException(ErrorEnum.NotPermMenuErrorCode);
+    }
   }
 
   /**

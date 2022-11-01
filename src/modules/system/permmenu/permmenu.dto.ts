@@ -63,6 +63,14 @@ export class SysPermMenuAddReqDto {
   viewPath: string;
 }
 
+export class SysPermMenuUpdateReqDto extends SysPermMenuAddReqDto {
+  @NumberField({
+    int: true,
+    min: 1,
+  })
+  id: number;
+}
+
 //--------------------------------------------------------------------------------
 //------------------------------------- resp -------------------------------------
 //--------------------------------------------------------------------------------
