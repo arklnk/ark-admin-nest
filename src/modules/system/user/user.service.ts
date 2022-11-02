@@ -1,12 +1,20 @@
 import { Injectable } from '@nestjs/common';
 import { uniq } from 'lodash';
 import { In, Not } from 'typeorm';
-import { SysUserPageItemRespDto } from './user.dto';
+import {
+  RoleInfoDto,
+  SysUserPageItemRespDto,
+  SysUserRdpjInfoRespDto,
+} from './user.dto';
 import type { ISystemUserPageQueryRowItem } from './user.interface';
 import { AbstractService } from '/@/common/abstract.service';
 import { encryptByMD5 } from '/@/common/utils/cipher';
 import { TREE_ROOT_NODE_ID } from '/@/constants/core';
+import { BoolTypeEnum } from '/@/constants/type';
 import { SysDeptEntity } from '/@/entities/sys-dept.entity';
+import { SysJobEntity } from '/@/entities/sys-job.entity';
+import { SysProfessionEntity } from '/@/entities/sys-profession.entity';
+import { SysRoleEntity } from '/@/entities/sys-role.entity';
 import { SysUserEntity } from '/@/entities/sys-user.entity';
 import { AppConfigService } from '/@/shared/services/app-config.service';
 import { AuthInspectService } from '/@/shared/services/auth-inspect.service';
@@ -89,10 +97,7 @@ export class SystemUserService extends AbstractService {
   }
 
   async updateUserPassword(uid: number, pwd: string): Promise<void> {
-    const isSuperAdmin = await this.inspectService.inspectSuperAdmin(uid);
-    if (isSuperAdmin) {
-      throw new Error(`Super admin: ${uid} changed password beyond authority`);
-    }
+    await this.inspectService.inspectSuperAdminThrow(uid);
 
     const encryPwd = encryptByMD5(
       `${pwd}${this.configService.appConfig.userPwdSalt}`,
@@ -106,12 +111,48 @@ export class SystemUserService extends AbstractService {
   }
 
   async deleteUser(uid: number): Promise<void> {
-    const isSuperAdmin = await this.inspectService.inspectSuperAdmin(uid);
-    if (isSuperAdmin) {
-      throw new Error(`Super admin: ${uid} delete beyond authority`);
+    await this.inspectService.inspectSuperAdminThrow(uid);
+    await this.entityManager.delete(SysUserEntity, { id: uid });
+  }
+
+  async getUserRoleDeptProfJobInfo(uid: number, opuid: number) {
+    await this.inspectService.inspectSuperAdminThrow(uid);
+
+    const profs = await this.entityManager.find(SysProfessionEntity, {
+      select: ['id', 'name'],
+    });
+
+    const depts = await this.entityManager.find(SysDeptEntity, {
+      select: ['id', 'name', 'parentId'],
+    });
+
+    const jobs = await this.entityManager.find(SysJobEntity, {
+      select: ['id', 'name'],
+    });
+
+    // 如果是超级管理员，则直接返回全部角色
+    const operateIsSuperAdmin = await this.inspectService.inspectSuperAdmin(
+      opuid,
+    );
+    if (operateIsSuperAdmin) {
+      const allRoles = await this.entityManager.find(SysRoleEntity, {
+        select: ['id', 'parentId', 'name'],
+      });
+
+      return new SysUserRdpjInfoRespDto(
+        profs,
+        depts,
+        jobs,
+        allRoles.map((e) => new RoleInfoDto(e, BoolTypeEnum.True)),
+      );
     }
 
-    await this.entityManager.delete(SysUserEntity, { id: uid });
+    // 查找当前操作用户所拥有的角色
+    const users = await this.entityManager.find(SysUserEntity, {
+      where: {
+        id: In([uid, opuid]),
+      },
+    });
   }
 
   /**

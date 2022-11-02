@@ -35,6 +35,16 @@ export class AuthInspectService {
   }
 
   /**
+   * 检查是否为超管，如果是则直接抛出异常
+   */
+  async inspectSuperAdminThrow(uid: number, roleIds?: number[]): Promise<void> {
+    const isSuper = await this.inspectSuperAdmin(uid, roleIds);
+    if (isSuper) {
+      throw new Error(`Illegal access to the super admin: ${uid}`);
+    }
+  }
+
+  /**
    * @description 获取所有的超级管理员用户ID列表
    */
   async getAllSuperAdminUserIds(): Promise<number[]> {

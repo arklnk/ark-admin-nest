@@ -5,6 +5,7 @@ import {
   SysUserPageItemRespDto,
   SysUserPageReqDto,
   SysUserPasswordUpdateReqDto,
+  SysUserRdpjInfoReqDto,
 } from './user.dto';
 import { SystemUserService } from './user.service';
 import { wrapResponse } from '/@/common/utils/swagger';
@@ -47,5 +48,13 @@ export class SystemUserController {
   })
   async delete(@Body() body: SysUserDeleteReqDto) {
     await this.userService.deleteUser(body.id);
+  }
+
+  @Get('rdpj/info')
+  async rdpjInfo(
+    @Query() query: SysUserRdpjInfoReqDto,
+    @AuthUser('uid') uid: number,
+  ) {
+    return await this.userService.getUserRoleDeptProfJobInfo(query.userId, uid);
   }
 }

@@ -1,6 +1,10 @@
 import type { ISystemUserPageQueryRowItem } from './user.interface';
 import { PageOptionsDto } from '/@/common/dto/page-options.dto';
 import { NumberField, StringField } from '/@/decorators/field.decorator';
+import { SysDeptEntity } from '/@/entities/sys-dept.entity';
+import { SysJobEntity } from '/@/entities/sys-job.entity';
+import { SysProfessionEntity } from '/@/entities/sys-profession.entity';
+import { SysRoleEntity } from '/@/entities/sys-role.entity';
 
 export class SysUserPageReqDto extends PageOptionsDto {
   @NumberField({
@@ -30,6 +34,14 @@ export class SysUserDeleteReqDto {
     min: 1,
   })
   id: number;
+}
+
+export class SysUserRdpjInfoReqDto {
+  @NumberField({
+    int: true,
+    min: 1,
+  })
+  userId: number;
 }
 
 //--------------------------------------------------------------------------------
@@ -86,5 +98,44 @@ export class SysUserPageItemRespDto {
       roles.push(new IdNameInfoDto(roleIds[i], roleNames[i]));
     }
     this.roles = roles;
+  }
+}
+
+export class DeptInfoDto extends IdNameInfoDto {
+  parentId: number;
+
+  constructor(id: number, name: string, parentId: number) {
+    super(id, name);
+    this.parentId = parentId;
+  }
+}
+
+export class RoleInfoDto extends IdNameInfoDto {
+  parentId: number;
+  has: number;
+
+  constructor(entity: SysRoleEntity, has: number) {
+    super(entity.id, entity.name);
+    this.parentId = entity.parentId;
+    this.has = has;
+  }
+}
+
+export class SysUserRdpjInfoRespDto {
+  profession: IdNameInfoDto[];
+  dept: DeptInfoDto[];
+  job: IdNameInfoDto[];
+  role: RoleInfoDto[];
+
+  constructor(
+    profs: SysProfessionEntity[],
+    depts: SysDeptEntity[],
+    jobs: SysJobEntity[],
+    roles: RoleInfoDto[],
+  ) {
+    this.profession = profs;
+    this.dept = depts;
+    this.job = jobs;
+    this.role = roles;
   }
 }
