@@ -88,7 +88,7 @@ export class SystemUserService extends AbstractService {
       });
   }
 
-  async updateUserPassword(uid: number, pwd: string) {
+  async updateUserPassword(uid: number, pwd: string): Promise<void> {
     const isSuperAdmin = await this.inspectService.inspectSuperAdmin(uid);
     if (isSuperAdmin) {
       throw new Error(`Super admin: ${uid} changed password beyond authority`);
@@ -103,6 +103,15 @@ export class SystemUserService extends AbstractService {
       { id: uid },
       { password: encryPwd },
     );
+  }
+
+  async deleteUser(uid: number): Promise<void> {
+    const isSuperAdmin = await this.inspectService.inspectSuperAdmin(uid);
+    if (isSuperAdmin) {
+      throw new Error(`Super admin: ${uid} delete beyond authority`);
+    }
+
+    await this.entityManager.delete(SysUserEntity, { id: uid });
   }
 
   /**

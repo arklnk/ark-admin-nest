@@ -1,6 +1,7 @@
 import { Body, Controller, Get, Post, Query } from '@nestjs/common';
 import { ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import {
+  SysUserDeleteReqDto,
   SysUserPageItemRespDto,
   SysUserPageReqDto,
   SysUserPasswordUpdateReqDto,
@@ -38,5 +39,13 @@ export class SystemUserController {
   })
   async passwordUpdate(@Body() body: SysUserPasswordUpdateReqDto) {
     await this.userService.updateUserPassword(body.id, body.password);
+  }
+
+  @Post('delete')
+  @ApiOkResponse({
+    type: wrapResponse(),
+  })
+  async delete(@Body() body: SysUserDeleteReqDto) {
+    await this.userService.deleteUser(body.id);
   }
 }
