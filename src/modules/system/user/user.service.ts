@@ -4,14 +4,19 @@ import { In, Not } from 'typeorm';
 import { SysUserPageItemRespDto } from './user.dto';
 import type { ISystemUserPageQueryRowItem } from './user.interface';
 import { AbstractService } from '/@/common/abstract.service';
+import { encryptByMD5 } from '/@/common/utils/cipher';
 import { TREE_ROOT_NODE_ID } from '/@/constants/core';
 import { SysDeptEntity } from '/@/entities/sys-dept.entity';
 import { SysUserEntity } from '/@/entities/sys-user.entity';
+import { AppConfigService } from '/@/shared/services/app-config.service';
 import { AuthInspectService } from '/@/shared/services/auth-inspect.service';
 
 @Injectable()
 export class SystemUserService extends AbstractService {
-  constructor(private inspectService: AuthInspectService) {
+  constructor(
+    private inspectService: AuthInspectService,
+    private configService: AppConfigService,
+  ) {
     super();
   }
 
@@ -81,6 +86,23 @@ export class SystemUserService extends AbstractService {
         limit,
         total: count,
       });
+  }
+
+  async updateUserPassword(uid: number, pwd: string) {
+    const isSuperAdmin = await this.inspectService.inspectSuperAdmin(uid);
+    if (isSuperAdmin) {
+      throw new Error(`Super admin: ${uid} changed password beyond authority`);
+    }
+
+    const encryPwd = encryptByMD5(
+      `${pwd}${this.configService.appConfig.userPwdSalt}`,
+    );
+
+    await this.entityManager.update(
+      SysUserEntity,
+      { id: uid },
+      { password: encryPwd },
+    );
   }
 
   /**

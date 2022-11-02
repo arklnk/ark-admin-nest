@@ -1,6 +1,6 @@
 import type { ISystemUserPageQueryRowItem } from './user.interface';
 import { PageOptionsDto } from '/@/common/dto/page-options.dto';
-import { NumberField } from '/@/decorators/field.decorator';
+import { NumberField, StringField } from '/@/decorators/field.decorator';
 
 export class SysUserPageReqDto extends PageOptionsDto {
   @NumberField({
@@ -8,6 +8,20 @@ export class SysUserPageReqDto extends PageOptionsDto {
     min: 0,
   })
   deptId: number;
+}
+
+export class SysUserPasswordUpdateReqDto {
+  @NumberField({
+    int: true,
+    min: 1,
+  })
+  id: number;
+
+  @StringField({
+    minLength: 6,
+    maxLength: 12,
+  })
+  password: string;
 }
 
 //--------------------------------------------------------------------------------

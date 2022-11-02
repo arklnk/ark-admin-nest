@@ -1,6 +1,10 @@
-import { Controller, Get, Query } from '@nestjs/common';
+import { Body, Controller, Get, Post, Query } from '@nestjs/common';
 import { ApiOkResponse, ApiTags } from '@nestjs/swagger';
-import { SysUserPageItemRespDto, SysUserPageReqDto } from './user.dto';
+import {
+  SysUserPageItemRespDto,
+  SysUserPageReqDto,
+  SysUserPasswordUpdateReqDto,
+} from './user.dto';
 import { SystemUserService } from './user.service';
 import { wrapResponse } from '/@/common/utils/swagger';
 import { AuthUser } from '/@/decorators/auth-user.decorator';
@@ -26,5 +30,13 @@ export class SystemUserController {
       query.deptId,
       uid,
     );
+  }
+
+  @Post('password/update')
+  @ApiOkResponse({
+    type: wrapResponse(),
+  })
+  async passwordUpdate(@Body() body: SysUserPasswordUpdateReqDto) {
+    await this.userService.updateUserPassword(body.id, body.password);
   }
 }
