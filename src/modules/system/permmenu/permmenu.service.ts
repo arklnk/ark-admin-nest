@@ -17,12 +17,12 @@ import { SysPermMenuEntity } from '/@/entities/sys-perm-menu.entity';
 import { SysRoleEntity } from '/@/entities/sys-role.entity';
 import { ApiFailedException } from '/@/exceptions/api-failed.exception';
 import { AppConfigService } from '/@/shared/services/app-config.service';
-import { AuthInspectService } from '/@/shared/services/auth-inspect.service';
+import { AppGeneralService } from '/@/shared/services/app-general.service';
 
 @Injectable()
 export class SystemPermMenuService extends AbstractService {
   constructor(
-    private inspectService: AuthInspectService,
+    private generalService: AppGeneralService,
     private redisService: RedisService,
     private configService: AppConfigService,
   ) {
@@ -47,8 +47,8 @@ export class SystemPermMenuService extends AbstractService {
     });
 
     // 查找用户具备的菜单权限
-    const isSuperAdmin = await this.inspectService.inspectSuperAdmin(uid);
-    if (isSuperAdmin) {
+    // 如果为超级管理员则直接返回
+    if (this.generalService.isRootUser(uid)) {
       return permmenus
         .map((e) => new SysPermMenuItemRespDto(e, BoolTypeEnum.True))
         .toList();
@@ -86,15 +86,15 @@ export class SystemPermMenuService extends AbstractService {
     }
 
     // 判断用户是否在该权限菜单的管理范围内才可进行删除操作
-    const isSuperAdmin = await this.inspectService.inspectSuperAdmin(uid);
+    const isRootUser = this.generalService.isRootUser(uid);
     let hasDeleteOperate = true;
 
-    if (!isSuperAdmin) {
+    if (!isRootUser) {
       const permmenuIds = await this.getUserPermMenuIds(uid);
       hasDeleteOperate = permmenuIds.includes(item.id);
     }
 
-    if (!isSuperAdmin && !hasDeleteOperate) {
+    if (!isRootUser && !hasDeleteOperate) {
       throw new ApiFailedException(ErrorEnum.NotPermMenuErrorCode);
     }
 
@@ -192,8 +192,7 @@ export class SystemPermMenuService extends AbstractService {
     uid: number,
     permissions: string[],
   ): Promise<void> {
-    const isSuperAdmin = await this.inspectService.inspectSuperAdmin(uid);
-    if (isSuperAdmin) return;
+    if (this.generalService.isRootUser(uid)) return;
 
     const cachePerms: string[] = JSON.parse(
       await this.redisService.getClient().get(`${UserPermCachePrefix}${uid}`),

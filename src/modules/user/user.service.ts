@@ -29,7 +29,6 @@ import { AppConfigService } from '/@/shared/services/app-config.service';
 import { isEmpty, omit, uniq } from 'lodash';
 import { ApiFailedException } from '/@/exceptions/api-failed.exception';
 import { SysUserEntity } from '/@/entities/sys-user.entity';
-import { encryptByMD5 } from '/@/common/utils/cipher';
 import { SysLogEntity } from '/@/entities/sys-log.entity';
 import {
   StatusTypeEnum,
@@ -41,6 +40,7 @@ import { SysPermMenuEntity } from '/@/entities/sys-perm-menu.entity';
 import { SysRoleEntity } from '/@/entities/sys-role.entity';
 import { In } from 'typeorm';
 import { AvatarGenerator } from '/@/providers/avatar-generator';
+import { AppGeneralService } from '/@/shared/services/app-general.service';
 
 @Injectable()
 export class UserService extends AbstractService {
@@ -48,6 +48,7 @@ export class UserService extends AbstractService {
     private jwtService: JwtService,
     private redisService: RedisService,
     private configService: AppConfigService,
+    private generalService: AppGeneralService,
   ) {
     super();
   }
@@ -105,10 +106,7 @@ export class UserService extends AbstractService {
     }
 
     // check password
-    const encryPwd = encryptByMD5(
-      `${dto.password}${this.configService.appConfig.userPwdSalt}`,
-    );
-
+    const encryPwd = this.generalService.generateUserPassword(dto.password);
     if (user.password !== encryPwd) {
       throw new ApiFailedException(ErrorEnum.PasswordErrorCode);
     }
@@ -154,15 +152,15 @@ export class UserService extends AbstractService {
       where: { id: uid },
     });
 
-    // super admin directly find all permission and menu
-    if (user.roleIds.includes(this.configService.appConfig.rootRoleId)) {
+    // 如果是超级管理员则直接返回所有的权限菜单
+    if (this.generalService.isRootUser(uid)) {
       const pms = await this.entityManager.find(SysPermMenuEntity, {
         order: {
           orderNum: 'DESC',
         },
       });
 
-      // cache and return
+      // 缓存权限用于权限中间件
       const result = this.splitPermAndMenu(pms);
       await this.redisService
         .getClient()
@@ -170,14 +168,14 @@ export class UserService extends AbstractService {
       return result;
     }
 
-    // role is tree struct, must find all sub role ids
+    // 查询用户所拥有的的角色，包括子角色（父角色会拥有所有的子级角色权限）
     let allSubRoles: number[] = [];
 
     const roleIdCache = await this.redisService
       .getClient()
       .get(`${UserRoleCahcePrefix}${user.id}`);
 
-    // check whether there is a cache and read from the cache
+    // 判断是否存在缓存
     if (isEmpty(roleIdCache)) {
       let lastQueryIds: number[] = [].concat(user.roleIds);
       allSubRoles = [].concat(user.roleIds);
@@ -195,10 +193,10 @@ export class UserService extends AbstractService {
         allSubRoles.push(...lastQueryIds);
       } while (lastQueryIds.length > 0);
 
-      // removing duplicate ids
+      // 移除重复id
       allSubRoles = uniq(allSubRoles);
 
-      // cache role ids
+      // 缓存角色，用以优化后续查询
       await this.redisService
         .getClient()
         .set(`${UserRoleCahcePrefix}${user.id}`, JSON.stringify(allSubRoles));
@@ -206,7 +204,7 @@ export class UserService extends AbstractService {
       allSubRoles = JSON.parse(roleIdCache);
     }
 
-    // find relation role info
+    // 查找相关的角色信息
     const roles = await this.entityManager.find<SysRoleEntityTreeNode>(
       SysRoleEntity,
       {
@@ -217,9 +215,8 @@ export class UserService extends AbstractService {
       },
     );
 
-    // filter disabled roles.
-    // if the parent is disabled, then all children are also disabled
-    // list to tree to delete disable node
+    // 过滤禁用的角色
+    // 如果父级角色被禁用，那么相对应的子角色也会被全部禁用
     const rolesTree: SysRoleEntityTreeNode[] = [];
     const nodeMap = new Map<number, SysRoleEntityTreeNode>();
 
@@ -235,7 +232,7 @@ export class UserService extends AbstractService {
       }
     }
 
-    // after filtering, obtain all permission menu ids
+    // 处理过滤后的角色所拥有的权限菜单编号
     let permmenuIds: number[] = [];
 
     for (let i = 0; i < rolesTree.length; i++) {
@@ -245,10 +242,10 @@ export class UserService extends AbstractService {
         rolesTree.splice(i + 1, 0, ...rolesTree[i].children);
     }
 
-    // removing duplicate ids
+    // 移除重复编号
     permmenuIds = uniq(permmenuIds);
 
-    // find permission and menu by role id
+    // 获取权限菜单信息
     const pms = await this.entityManager.find(SysPermMenuEntity, {
       where: {
         id: In(permmenuIds),
@@ -258,7 +255,7 @@ export class UserService extends AbstractService {
       },
     });
 
-    // cache and return
+    // 缓存权限
     const result = this.splitPermAndMenu(pms);
     await this.redisService
       .getClient()
@@ -267,7 +264,7 @@ export class UserService extends AbstractService {
   }
 
   /**
-   * grouping permission and menu
+   * 分离权限以及菜单
    */
   private splitPermAndMenu(permmenu: SysPermMenuEntity[]): UserPermMenuRespDto {
     const menus: UserPermRespItemDto[] = [];
@@ -308,10 +305,6 @@ export class UserService extends AbstractService {
       where: { id: uid },
     });
 
-    if (isEmpty(user)) {
-      throw new Error(`user id: ${uid} does not exist`);
-    }
-
     return new UserProfileInfoRespDto(user);
   }
 
@@ -320,10 +313,6 @@ export class UserService extends AbstractService {
       select: ['username', 'avatar'],
       where: { id: uid },
     });
-
-    if (isEmpty(user)) {
-      throw new Error(`user id: ${uid} does not exist`);
-    }
 
     return new UserInfoRespDto(user);
   }
@@ -357,16 +346,16 @@ export class UserService extends AbstractService {
       },
     });
 
-    const oldPasswordCipher = encryptByMD5(
-      `${body.oldPassword}${this.configService.appConfig.userPwdSalt}`,
+    const oldPasswordCipher = this.generalService.generateUserPassword(
+      body.oldPassword,
     );
 
     if (user.password !== oldPasswordCipher) {
       throw new ApiFailedException(ErrorEnum.PasswordErrorCode);
     }
 
-    const newPasswordCipher = encryptByMD5(
-      `${body.newPassword}${this.configService.appConfig.userPwdSalt}`,
+    const newPasswordCipher = this.generalService.generateUserPassword(
+      body.newPassword,
     );
 
     await this.entityManager.update(

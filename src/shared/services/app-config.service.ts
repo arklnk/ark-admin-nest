@@ -28,8 +28,9 @@ export class AppConfigService {
     return {
       port: this.getNumber('PORT'),
       globalPrefix: this.getString('GLOBAL_PREFIX'),
-      rootRoleId: this.getNumber('ROOT_ROLE_ID'),
+      rootUserId: this.getNumber('ROOT_USER_ID'),
       userPwdSalt: this.getString('USER_PWD_SALT'),
+      userDefaultPwd: this.getString('USER_DEFAULT_PWD'),
       protectSysPermMenuMaxId: this.getNumber('PROTECT_SYS_PERMMENU_MAX_ID'),
       protectSysDictionaryMaxId: this.getNumber(
         'PROTECT_SYS_DICTIONARY_MAX_ID',

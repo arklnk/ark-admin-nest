@@ -25,12 +25,11 @@ export class SystemUserController {
       struct: 'page',
     }),
   })
-  async page(@Query() query: SysUserPageReqDto, @AuthUser('uid') uid: number) {
+  async page(@Query() query: SysUserPageReqDto) {
     return await this.userService.getUserByPage(
       query.page,
       query.limit,
       query.deptId,
-      uid,
     );
   }
 

@@ -17,30 +17,19 @@ import { SysProfessionEntity } from '/@/entities/sys-profession.entity';
 import { SysRoleEntity } from '/@/entities/sys-role.entity';
 import { SysUserEntity } from '/@/entities/sys-user.entity';
 import { AppConfigService } from '/@/shared/services/app-config.service';
-import { AuthInspectService } from '/@/shared/services/auth-inspect.service';
+import { AppGeneralService } from '/@/shared/services/app-general.service';
 
 @Injectable()
 export class SystemUserService extends AbstractService {
   constructor(
-    private inspectService: AuthInspectService,
+    private generalService: AppGeneralService,
     private configService: AppConfigService,
   ) {
     super();
   }
 
-  async getUserByPage(
-    page: number,
-    limit: number,
-    queryDeptId: number,
-    uid: number,
-  ) {
+  async getUserByPage(page: number, limit: number, queryDeptId: number) {
     const deptIds = await this.getSubDeptAndSelfIds(queryDeptId);
-
-    // 去除超级管理员以及自身
-    const ignoreUserIds = await this.inspectService.getAllSuperAdminUserIds();
-    if (!ignoreUserIds.includes(uid)) {
-      ignoreUserIds.push(uid);
-    }
 
     const rows = await this.nativeQuery<ISystemUserPageQueryRowItem[]>(
       `SELECT
@@ -68,7 +57,7 @@ export class SystemUserService extends AbstractService {
       FROM
       (
         SELECT * FROM ${this.getTableName(SysUserEntity)}
-        WHERE id NOT IN (?) AND dept_id IN(?)
+        WHERE id != ? AND dept_id IN(?)
         ORDER BY order_num DESC
         LIMIT ?, ?
       ) u
@@ -77,12 +66,17 @@ export class SystemUserService extends AbstractService {
       LEFT JOIN sys_job j ON u.job_id = j.id
       LEFT JOIN sys_role r ON JSON_CONTAINS(u.role_ids, JSON_ARRAY(r.id))
       GROUP BY u.id`,
-      [ignoreUserIds, deptIds, (page - 1) * limit, limit],
+      [
+        this.configService.appConfig.rootUserId,
+        deptIds,
+        (page - 1) * limit,
+        limit,
+      ],
     );
 
     const count = await this.entityManager.count(SysUserEntity, {
       where: {
-        id: Not(In(ignoreUserIds)),
+        id: Not(this.configService.appConfig.rootUserId),
         deptId: In(deptIds),
       },
     });
@@ -97,7 +91,7 @@ export class SystemUserService extends AbstractService {
   }
 
   async updateUserPassword(uid: number, pwd: string): Promise<void> {
-    await this.inspectService.inspectSuperAdminThrow(uid);
+    this.generalService.nonRootUserThrow(uid);
 
     const encryPwd = encryptByMD5(
       `${pwd}${this.configService.appConfig.userPwdSalt}`,
@@ -111,12 +105,13 @@ export class SystemUserService extends AbstractService {
   }
 
   async deleteUser(uid: number): Promise<void> {
-    await this.inspectService.inspectSuperAdminThrow(uid);
+    this.generalService.nonRootUserThrow(uid);
+
     await this.entityManager.delete(SysUserEntity, { id: uid });
   }
 
   async getUserRoleDeptProfJobInfo(uid: number, opuid: number) {
-    await this.inspectService.inspectSuperAdminThrow(uid);
+    this.generalService.nonRootUserThrow(uid);
 
     const profs = await this.entityManager.find(SysProfessionEntity, {
       select: ['id', 'name'],
@@ -131,10 +126,8 @@ export class SystemUserService extends AbstractService {
     });
 
     // 如果是超级管理员，则直接返回全部角色
-    const operateIsSuperAdmin = await this.inspectService.inspectSuperAdmin(
-      opuid,
-    );
-    if (operateIsSuperAdmin) {
+    const operateIsRootUser = this.generalService.isRootUser(opuid);
+    if (operateIsRootUser) {
       const allRoles = await this.entityManager.find(SysRoleEntity, {
         select: ['id', 'parentId', 'name'],
       });
@@ -148,7 +141,7 @@ export class SystemUserService extends AbstractService {
     }
 
     // 查找当前操作用户所拥有的角色
-    const users = await this.entityManager.find(SysUserEntity, {
+    await this.entityManager.find(SysUserEntity, {
       where: {
         id: In([uid, opuid]),
       },

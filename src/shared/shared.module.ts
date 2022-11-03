@@ -2,9 +2,9 @@ import { HttpModule } from '@nestjs/axios';
 import { Global, Module } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { AppConfigService } from './services/app-config.service';
-import { AuthInspectService } from './services/auth-inspect.service';
+import { AppGeneralService } from './services/app-general.service';
 
-const providers = [AppConfigService, AuthInspectService];
+const providers = [AppConfigService, AppGeneralService];
 
 @Global()
 @Module({
