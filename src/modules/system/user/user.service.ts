@@ -91,7 +91,9 @@ export class SystemUserService extends AbstractService {
   }
 
   async updateUserPassword(uid: number, pwd: string): Promise<void> {
-    this.generalService.nonRootUserThrow(uid);
+    if (this.generalService.isRootUser(uid)) {
+      throw new Error(`User ${uid} illegally changes the password of the root`);
+    }
 
     const encryPwd = encryptByMD5(
       `${pwd}${this.configService.appConfig.userPwdSalt}`,
@@ -105,13 +107,17 @@ export class SystemUserService extends AbstractService {
   }
 
   async deleteUser(uid: number): Promise<void> {
-    this.generalService.nonRootUserThrow(uid);
+    if (this.generalService.isRootUser(uid)) {
+      throw new Error(`User ${uid} illegally delete root`);
+    }
 
     await this.entityManager.delete(SysUserEntity, { id: uid });
   }
 
-  async getUserRoleDeptProfJobInfo(uid: number, opuid: number) {
-    this.generalService.nonRootUserThrow(uid);
+  async getUserRoleDeptProfJobInfo(edituid: number, opuid: number) {
+    if (this.generalService.isRootUser(edituid)) {
+      throw new Error(`User ${edituid} illegally obtaining root info`);
+    }
 
     const profs = await this.entityManager.find(SysProfessionEntity, {
       select: ['id', 'name'],
@@ -125,7 +131,7 @@ export class SystemUserService extends AbstractService {
       select: ['id', 'name'],
     });
 
-    // 如果是超级管理员，则直接返回全部角色
+    // 超级管理员，则直接返回全部角色
     const operateIsRootUser = this.generalService.isRootUser(opuid);
     if (operateIsRootUser) {
       const allRoles = await this.entityManager.find(SysRoleEntity, {
@@ -140,12 +146,47 @@ export class SystemUserService extends AbstractService {
       );
     }
 
-    // 查找当前操作用户所拥有的角色
-    await this.entityManager.find(SysUserEntity, {
+    const opUserInfo = await this.entityManager.findOne(SysUserEntity, {
+      select: ['id', 'roleIds'],
       where: {
-        id: In([uid, opuid]),
+        id: opuid,
       },
     });
+
+    const rolesIds: number[] = [];
+    // 获取当前操作的管理员所能编辑的所有角色权限
+    rolesIds.push(...opUserInfo.roleIds);
+
+    // 如果需要查询的用户时，则要判断查询的用户具备的角色是否都可被当前操作的管理员所进行编辑
+    if (edituid !== 0) {
+      const editUserInfo = await this.entityManager.findOne(SysUserEntity, {
+        select: ['id', 'roleIds'],
+        where: {
+          id: edituid,
+        },
+      });
+
+      rolesIds.push(...editUserInfo.roleIds);
+    }
+
+    const rolesInfo = await this.entityManager.find(SysRoleEntity, {
+      select: ['id', 'name', 'parentId'],
+      where: {
+        id: In(rolesIds),
+      },
+    });
+
+    return new SysUserRdpjInfoRespDto(
+      profs,
+      depts,
+      jobs,
+      rolesInfo.map((e) => {
+        const has = opUserInfo.roleIds.includes(e.id)
+          ? BoolTypeEnum.True
+          : BoolTypeEnum.False;
+        return new RoleInfoDto(e, has);
+      }),
+    );
   }
 
   /**

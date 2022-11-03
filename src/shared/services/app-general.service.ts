@@ -15,14 +15,6 @@ export class AppGeneralService {
   }
 
   /**
-   * @description 判断是否为超级管理员, 如果不是则直接抛出异常
-   */
-  nonRootUserThrow(uid: number): void {
-    if (this.isRootUser(uid)) return;
-    throw new Error(`User ${uid} illegal access`);
-  }
-
-  /**
    * @description 生成管理员密码，密码格式为用户密码+盐值后取MD5
    */
   generateUserPassword(pwd?: string): string {

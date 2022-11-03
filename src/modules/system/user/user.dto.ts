@@ -1,9 +1,6 @@
 import type { ISystemUserPageQueryRowItem } from './user.interface';
 import { PageOptionsDto } from '/@/common/dto/page-options.dto';
 import { NumberField, StringField } from '/@/decorators/field.decorator';
-import { SysDeptEntity } from '/@/entities/sys-dept.entity';
-import { SysJobEntity } from '/@/entities/sys-job.entity';
-import { SysProfessionEntity } from '/@/entities/sys-profession.entity';
 import { SysRoleEntity } from '/@/entities/sys-role.entity';
 
 export class SysUserPageReqDto extends PageOptionsDto {
@@ -39,7 +36,8 @@ export class SysUserDeleteReqDto {
 export class SysUserRdpjInfoReqDto {
   @NumberField({
     int: true,
-    min: 1,
+    min: 0,
+    required: false,
   })
   userId: number;
 }
@@ -128,9 +126,9 @@ export class SysUserRdpjInfoRespDto {
   role: RoleInfoDto[];
 
   constructor(
-    profs: SysProfessionEntity[],
-    depts: SysDeptEntity[],
-    jobs: SysJobEntity[],
+    profs: IdNameInfoDto[],
+    depts: DeptInfoDto[],
+    jobs: IdNameInfoDto[],
     roles: RoleInfoDto[],
   ) {
     this.profession = profs;
