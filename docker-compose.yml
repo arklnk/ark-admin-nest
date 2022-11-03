@@ -23,12 +23,11 @@ services:
       - "80:8080"
     restart: always
 
-  ark-admin-midway:
-    image: arklnk/ark-admin:midway
-    container_name: ark-admin-midway
+  ark-admin-nest:
+    image: arklnk/ark-admin:nest
+    container_name: ark-admin-nest
     volumes:
-      - ./deploy/service/core/etc:/app/etc
-      - ./data/service/logs:/app/logs
+      - ./deploy/etc/.env.production:/app/.env.production
     restart: always
 
   mysql:
