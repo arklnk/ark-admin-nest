@@ -62,11 +62,11 @@ export function NumberField(
   }
 
   if (isNumber(min)) {
-    decorators.push(Min(min));
+    decorators.push(Min(min, { each }));
   }
 
   if (isNumber(max)) {
-    decorators.push(Max(max));
+    decorators.push(Max(max, { each }));
   }
 
   if (positive) {
