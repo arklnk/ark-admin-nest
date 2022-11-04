@@ -1,11 +1,13 @@
 import { Body, Controller, Get, Post, Query } from '@nestjs/common';
 import { ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import {
+  SysUserAddReqDto,
   SysUserDeleteReqDto,
   SysUserPageItemRespDto,
   SysUserPageReqDto,
   SysUserPasswordUpdateReqDto,
   SysUserRdpjInfoReqDto,
+  SysUserRdpjInfoRespDto,
 } from './user.dto';
 import { SystemUserService } from './user.service';
 import { wrapResponse } from '/@/common/utils/swagger';
@@ -50,10 +52,23 @@ export class SystemUserController {
   }
 
   @Get('rdpj/info')
+  @ApiOkResponse({
+    type: wrapResponse({
+      type: SysUserRdpjInfoRespDto,
+    }),
+  })
   async rdpjInfo(
     @Query() query: SysUserRdpjInfoReqDto,
     @AuthUser('uid') uid: number,
   ) {
     return await this.userService.getUserRoleDeptProfJobInfo(query.userId, uid);
+  }
+
+  @Post('add')
+  @ApiOkResponse({
+    type: wrapResponse(),
+  })
+  async add(@Body() body: SysUserAddReqDto, @AuthUser('uid') uid: number) {
+    await this.userService.addUser(body, uid);
   }
 }

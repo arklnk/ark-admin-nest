@@ -42,6 +42,77 @@ export class SysUserRdpjInfoReqDto {
   userId: number;
 }
 
+export class SysUserAddReqDto {
+  @StringField({
+    minLength: 4,
+    maxLength: 50,
+  })
+  account: string;
+
+  @NumberField({
+    min: 1,
+  })
+  deptId: number;
+
+  @StringField({
+    required: false,
+  })
+  email?: string;
+
+  @NumberField({
+    min: 0,
+    max: 2,
+  })
+  gender: number;
+
+  @NumberField({
+    min: 1,
+  })
+  jobId: number;
+
+  @StringField({
+    required: false,
+  })
+  mobile?: string;
+
+  @StringField({
+    required: false,
+  })
+  nickname?: string;
+
+  @NumberField({
+    min: 0,
+    required: false,
+  })
+  orderNum?: number;
+
+  @NumberField({
+    min: 0,
+  })
+  professionId: number;
+
+  @StringField({
+    required: false,
+  })
+  remark?: string;
+
+  @NumberField({
+    each: true,
+    int: true,
+    min: 1,
+  })
+  roleIds: number[];
+
+  @NumberField({
+    min: 0,
+    max: 1,
+  })
+  status: number;
+
+  @StringField()
+  username: string;
+}
+
 //--------------------------------------------------------------------------------
 //------------------------------------- resp -------------------------------------
 //--------------------------------------------------------------------------------

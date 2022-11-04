@@ -1,8 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import { uniq } from 'lodash';
+import { isEmpty, omit, uniq } from 'lodash';
 import { In, Not } from 'typeorm';
 import {
   RoleInfoDto,
+  SysUserAddReqDto,
   SysUserPageItemRespDto,
   SysUserRdpjInfoRespDto,
 } from './user.dto';
@@ -10,12 +11,14 @@ import type { ISystemUserPageQueryRowItem } from './user.interface';
 import { AbstractService } from '/@/common/abstract.service';
 import { encryptByMD5 } from '/@/common/utils/cipher';
 import { TREE_ROOT_NODE_ID } from '/@/constants/core';
+import { ErrorEnum } from '/@/constants/errorx';
 import { BoolTypeEnum } from '/@/constants/type';
 import { SysDeptEntity } from '/@/entities/sys-dept.entity';
 import { SysJobEntity } from '/@/entities/sys-job.entity';
 import { SysProfessionEntity } from '/@/entities/sys-profession.entity';
 import { SysRoleEntity } from '/@/entities/sys-role.entity';
 import { SysUserEntity } from '/@/entities/sys-user.entity';
+import { ApiFailedException } from '/@/exceptions/api-failed.exception';
 import { AppConfigService } from '/@/shared/services/app-config.service';
 import { AppGeneralService } from '/@/shared/services/app-general.service';
 
@@ -187,6 +190,80 @@ export class SystemUserService extends AbstractService {
         return new RoleInfoDto(e, has);
       }),
     );
+  }
+
+  async addUser(item: SysUserAddReqDto, opuid: number): Promise<void> {
+    await this.checkJobOrDeptOrProfExists(
+      item.jobId,
+      item.deptId,
+      item.professionId,
+    );
+
+    // 检查新增的用户角色是否为当前操作用户可操作范围，防止越权
+    const opUserInfo = await this.entityManager.findOne(SysUserEntity, {
+      select: ['id', 'roleIds'],
+      where: {
+        id: opuid,
+      },
+    });
+
+    let isExceed = false;
+    // 超级管理员则跳过检查
+    if (!this.generalService.isRootUser(opuid)) {
+      isExceed = item.roleIds.some((e) => !opUserInfo.roleIds.includes(e));
+    }
+    if (isExceed) {
+      throw new ApiFailedException(ErrorEnum.AssigningRolesErrorCode);
+    }
+
+    // 创建用户
+    await this.entityManager.insert(SysUserEntity, {
+      ...omit(item, 'roleIds'),
+      roleIds: uniq(item.roleIds),
+      password: this.generalService.generateUserPassword(),
+    });
+  }
+
+  /**
+   * 检查Job、Dept、Profession ID是否存在，不存在则报错
+   */
+  async checkJobOrDeptOrProfExists(
+    jobId: number,
+    deptId: number,
+    profId: number,
+  ): Promise<void> {
+    const jobInfo = await this.entityManager.findOne(SysJobEntity, {
+      select: ['id'],
+      where: {
+        id: jobId,
+      },
+    });
+
+    if (isEmpty(jobInfo)) {
+      throw new ApiFailedException(ErrorEnum.JobIdErrorCode);
+    }
+
+    const profInfo = await this.entityManager.findOne(SysProfessionEntity, {
+      select: ['id'],
+      where: {
+        id: profId,
+      },
+    });
+
+    if (isEmpty(profInfo)) {
+      throw new ApiFailedException(ErrorEnum.ProfessionIdErrorCode);
+    }
+
+    const deptInfo = await this.entityManager.findOne(SysDeptEntity, {
+      select: ['id'],
+      where: {
+        id: deptId,
+      },
+    });
+
+    if (isEmpty(deptInfo)) {
+      throw new ApiFailedException(ErrorEnum.DeptIdErrorCode);
+    }
   }
 
   /**
