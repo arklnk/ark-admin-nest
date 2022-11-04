@@ -1,3 +1,4 @@
+import { OmitType } from '@nestjs/swagger';
 import type { ISystemUserPageQueryRowItem } from './user.interface';
 import { PageOptionsDto } from '/@/common/dto/page-options.dto';
 import { NumberField, StringField } from '/@/decorators/field.decorator';
@@ -111,6 +112,16 @@ export class SysUserAddReqDto {
 
   @StringField()
   username: string;
+}
+
+export class SysUserUpdateReqDto extends OmitType(SysUserAddReqDto, [
+  'account',
+] as const) {
+  @NumberField({
+    int: true,
+    min: 1,
+  })
+  id: number;
 }
 
 //--------------------------------------------------------------------------------

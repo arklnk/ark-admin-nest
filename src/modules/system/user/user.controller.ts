@@ -8,6 +8,7 @@ import {
   SysUserPasswordUpdateReqDto,
   SysUserRdpjInfoReqDto,
   SysUserRdpjInfoRespDto,
+  SysUserUpdateReqDto,
 } from './user.dto';
 import { SystemUserService } from './user.service';
 import { wrapResponse } from '/@/common/utils/swagger';
@@ -70,5 +71,16 @@ export class SystemUserController {
   })
   async add(@Body() body: SysUserAddReqDto, @AuthUser('uid') uid: number) {
     await this.userService.addUser(body, uid);
+  }
+
+  @Post('update')
+  @ApiOkResponse({
+    type: wrapResponse(),
+  })
+  async update(
+    @Body() body: SysUserUpdateReqDto,
+    @AuthUser('uid') uid: number,
+  ) {
+    await this.userService.updateUser(body, uid);
   }
 }

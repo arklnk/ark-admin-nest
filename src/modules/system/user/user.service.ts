@@ -1,11 +1,12 @@
 import { Injectable } from '@nestjs/common';
-import { isEmpty, omit, uniq } from 'lodash';
+import { difference, isEmpty, omit, uniq, without } from 'lodash';
 import { In, Not } from 'typeorm';
 import {
   RoleInfoDto,
   SysUserAddReqDto,
   SysUserPageItemRespDto,
   SysUserRdpjInfoRespDto,
+  SysUserUpdateReqDto,
 } from './user.dto';
 import type { ISystemUserPageQueryRowItem } from './user.interface';
 import { AbstractService } from '/@/common/abstract.service';
@@ -222,6 +223,56 @@ export class SystemUserService extends AbstractService {
       roleIds: uniq(item.roleIds),
       password: this.generalService.generateUserPassword(),
     });
+  }
+
+  async updateUser(item: SysUserUpdateReqDto, opuid: number): Promise<void> {
+    await this.checkJobOrDeptOrProfExists(
+      item.jobId,
+      item.deptId,
+      item.professionId,
+    );
+
+    let isExceed = false;
+    if (!this.generalService.isRootUser(opuid)) {
+      const users = await this.entityManager.find(SysUserEntity, {
+        select: ['id', 'roleIds'],
+        where: {
+          id: In([item.id, opuid]),
+        },
+      });
+
+      const editUser = users.find((e) => e.id === item.id);
+      const opUser = users.find((e) => e.id === opuid);
+
+      // 当被编辑用户的角色权限与当前操作用户的角色权限存在差异时，检查是否操作越权
+      let forbiddenRoleIds: number[] = difference(
+        editUser.roleIds,
+        opUser.roleIds,
+      );
+
+      // 查找是否有修改了当前操作用户所不具备的权限
+      isExceed = forbiddenRoleIds.some((e) => !item.roleIds.includes(e));
+
+      // 如果已经越权了则无需再做后续判断
+      if (!isExceed) {
+        // 过滤掉禁止修改的权限，剩余判断自身操作用户所拥有的的权限，防止越权
+        forbiddenRoleIds = without(item.roleIds, ...forbiddenRoleIds);
+        isExceed = forbiddenRoleIds.some((e) => !opUser.roleIds.includes(e));
+      }
+    }
+    if (isExceed) {
+      throw new ApiFailedException(ErrorEnum.AssigningRolesErrorCode);
+    }
+
+    // 更新用户
+    await this.entityManager.update(
+      SysUserEntity,
+      { id: item.id },
+      {
+        ...omit(item, ['roleIds', 'id']),
+        roleIds: uniq(item.roleIds),
+      },
+    );
   }
 
   /**
