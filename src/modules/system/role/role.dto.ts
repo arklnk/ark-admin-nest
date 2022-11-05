@@ -1,4 +1,13 @@
+import { NumberField } from '/@/decorators/field.decorator';
 import { SysRoleEntity } from '/@/entities/sys-role.entity';
+
+export class SysRoleDeleteReqDto {
+  @NumberField({
+    int: true,
+    min: 1,
+  })
+  id: number;
+}
 
 export class SysRoleListItemRespDto {
   id: number;

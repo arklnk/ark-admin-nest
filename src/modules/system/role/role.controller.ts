@@ -1,6 +1,6 @@
-import { Controller, Get } from '@nestjs/common';
+import { Body, Controller, Get, Post } from '@nestjs/common';
 import { ApiOkResponse, ApiTags } from '@nestjs/swagger';
-import { SysRoleListItemRespDto } from './role.dto';
+import { SysRoleDeleteReqDto, SysRoleListItemRespDto } from './role.dto';
 import { SystemRoleService } from './role.service';
 import { wrapResponse } from '/@/common/utils/swagger';
 import { ApiSecurityAuth } from '/@/decorators/swagger.decorator';
@@ -20,5 +20,13 @@ export class SystemRoleController {
   })
   async list() {
     return this.roleService.getRoleByList();
+  }
+
+  @Post('delete')
+  @ApiOkResponse({
+    type: wrapResponse(),
+  })
+  async delete(@Body() body: SysRoleDeleteReqDto) {
+    await this.roleService.deleteRole(body.id);
   }
 }
