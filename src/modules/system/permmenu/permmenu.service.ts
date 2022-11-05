@@ -215,7 +215,7 @@ export class SystemPermMenuService extends AbstractService {
     const roleIds: number[] = JSON.parse(roleIdsStr);
 
     const rolesInfo = await this.entityManager.find(SysRoleEntity, {
-      select: ['permmenuIds'],
+      select: ['permMenuIds'],
       where: {
         id: In(roleIds),
       },
@@ -223,7 +223,7 @@ export class SystemPermMenuService extends AbstractService {
 
     let userHasPermMenuIds: number[] = [];
     rolesInfo.forEach((e) => {
-      userHasPermMenuIds.push(...e.permmenuIds);
+      userHasPermMenuIds.push(...e.permMenuIds);
     });
     userHasPermMenuIds = uniq(userHasPermMenuIds);
 

@@ -28,7 +28,7 @@ export class SysRoleEntity extends AbstractEntity {
   remark: string;
 
   @Column({ name: 'perm_menu_ids', type: 'simple-json', comment: '权限集' })
-  permmenuIds: number[];
+  permMenuIds: number[];
 
   @Column({
     type: 'tinyint',

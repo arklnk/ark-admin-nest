@@ -208,7 +208,7 @@ export class UserService extends AbstractService {
     const roles = await this.entityManager.find<SysRoleEntityTreeNode>(
       SysRoleEntity,
       {
-        select: ['status', 'id', 'parentId', 'permmenuIds'],
+        select: ['status', 'id', 'parentId', 'permMenuIds'],
         where: {
           id: In(allSubRoles),
         },
@@ -236,7 +236,7 @@ export class UserService extends AbstractService {
     let permmenuIds: number[] = [];
 
     for (let i = 0; i < rolesTree.length; i++) {
-      permmenuIds.push(...rolesTree[i].permmenuIds);
+      permmenuIds.push(...rolesTree[i].permMenuIds);
 
       !isEmpty(rolesTree[i]) &&
         rolesTree.splice(i + 1, 0, ...rolesTree[i].children);
