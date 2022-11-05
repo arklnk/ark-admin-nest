@@ -1,6 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { SysRoleListItemRespDto } from './role.dto';
+import { isEmpty } from 'lodash';
+import { SysRoleAddReqDto, SysRoleListItemRespDto } from './role.dto';
 import { AbstractService } from '/@/common/abstract.service';
+import { TREE_ROOT_NODE_ID } from '/@/constants/core';
 import { ErrorEnum } from '/@/constants/errorx';
 import { SysRoleEntity } from '/@/entities/sys-role.entity';
 import { SysUserEntity } from '/@/entities/sys-user.entity';
@@ -35,5 +37,22 @@ export class SystemRoleService extends AbstractService {
     }
 
     await this.entityManager.delete(SysRoleEntity, { id: roleId });
+  }
+
+  async addRole(item: SysRoleAddReqDto): Promise<void> {
+    if (item.parentId !== TREE_ROOT_NODE_ID) {
+      const parent = await this.entityManager.findOne(SysRoleEntity, {
+        select: ['id'],
+        where: {
+          id: item.parentId,
+        },
+      });
+
+      if (isEmpty(parent)) {
+        throw new ApiFailedException(ErrorEnum.ParentRoleIdErrorCode);
+      }
+    }
+
+    await this.entityManager.insert(SysRoleEntity, item);
   }
 }
