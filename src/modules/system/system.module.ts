@@ -4,6 +4,7 @@ import { SystemDeptModule } from './dept/dept.module';
 import { SystemJobModule } from './job/job.module';
 import { SystemPermMenuModule } from './permmenu/permmenu.module';
 import { SystemProfessionModule } from './profession/profession.module';
+import { SystemRoleModule } from './role/role.module';
 import { SystemUserModule } from './user/user.module';
 
 @Module({
@@ -17,6 +18,7 @@ import { SystemUserModule } from './user/user.module';
           SystemDeptModule,
           SystemPermMenuModule,
           SystemUserModule,
+          SystemRoleModule,
         ],
       },
     ]),
@@ -25,6 +27,7 @@ import { SystemUserModule } from './user/user.module';
     SystemDeptModule,
     SystemPermMenuModule,
     SystemUserModule,
+    SystemRoleModule,
   ],
 })
 export class SystemModule {}
