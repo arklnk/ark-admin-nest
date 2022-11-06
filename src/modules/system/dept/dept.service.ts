@@ -75,7 +75,7 @@ export class SystemDeptService extends AbstractService {
       }
     }
 
-    // 查找未修改前角色ID所有的子项，防止将父级菜单修改成自己的子项导致数据丢失
+    // 查找未修改前部门ID所有的子项，防止将父级菜单修改成自己的子项导致数据丢失
     let lastQueryIds: number[] = [item.id];
     const allSubDeptIds: number[] = [];
 
