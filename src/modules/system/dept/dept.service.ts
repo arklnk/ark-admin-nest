@@ -10,11 +10,12 @@ import { SysDeptEntity } from '/@/entities/sys-dept.entity';
 import { ApiFailedException } from '/@/exceptions/api-failed.exception';
 import { ErrorEnum } from '/@/constants/errorx';
 import { SysUserEntity } from '/@/entities/sys-user.entity';
+import { TREE_ROOT_NODE_ID } from '/@/constants/core';
 
 @Injectable()
 export class SystemDeptService extends AbstractService {
   async addDept(item: SysDeptAddReqDto): Promise<void> {
-    if (item.parentId !== 0) {
+    if (item.parentId !== TREE_ROOT_NODE_ID) {
       const exists = await this.findItemExists(item.parentId);
       if (!exists) {
         throw new ApiFailedException(ErrorEnum.ParentDeptIdErrorCode);
@@ -67,11 +68,32 @@ export class SystemDeptService extends AbstractService {
   }
 
   async updateDept(item: SysDeptUpdateReqDto) {
-    if (item.parentId !== 0) {
+    if (item.parentId !== TREE_ROOT_NODE_ID) {
       const exists = await this.findItemExists(item.parentId);
       if (!exists) {
         throw new ApiFailedException(ErrorEnum.ParentDeptIdErrorCode);
       }
+    }
+
+    // 查找未修改前角色ID所有的子项，防止将父级菜单修改成自己的子项导致数据丢失
+    let lastQueryIds: number[] = [item.id];
+    const allSubDeptIds: number[] = [];
+
+    do {
+      const pmIds = await this.entityManager
+        .createQueryBuilder(SysDeptEntity, 'dept')
+        .select(['dept.id'])
+        .where('FIND_IN_SET(parent_id, :ids)', {
+          ids: lastQueryIds.join(','),
+        })
+        .getMany();
+
+      lastQueryIds = pmIds.map((e) => e.id);
+      allSubDeptIds.push(...lastQueryIds);
+    } while (lastQueryIds.length > 0);
+
+    if (allSubDeptIds.includes(item.parentId)) {
+      throw new ApiFailedException(ErrorEnum.SetParentIdErrorCode);
     }
 
     await this.entityManager.update(
