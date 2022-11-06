@@ -54,6 +54,14 @@ export class SysRoleAddReqDto {
   uniqueKey: string;
 }
 
+export class SysRoleUpdateReqDto extends SysRoleAddReqDto {
+  @NumberField({
+    int: true,
+    min: 1,
+  })
+  id: number;
+}
+
 export class SysRoleListItemRespDto {
   id: number;
   name: string;

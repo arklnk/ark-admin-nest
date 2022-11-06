@@ -1,6 +1,10 @@
 import { Injectable } from '@nestjs/common';
-import { isEmpty } from 'lodash';
-import { SysRoleAddReqDto, SysRoleListItemRespDto } from './role.dto';
+import { isEmpty, omit } from 'lodash';
+import {
+  SysRoleAddReqDto,
+  SysRoleListItemRespDto,
+  SysRoleUpdateReqDto,
+} from './role.dto';
 import { AbstractService } from '/@/common/abstract.service';
 import { TREE_ROOT_NODE_ID } from '/@/constants/core';
 import { ErrorEnum } from '/@/constants/errorx';
@@ -28,7 +32,6 @@ export class SystemRoleService extends AbstractService {
 
     const countUse = await this.entityManager
       .createQueryBuilder(SysUserEntity, 'user')
-      .select('COUNT(user.id)')
       .where('JSON_CONTAINS(user.role_ids, JSON_ARRAY(:id))', { id: roleId })
       .getCount();
 
@@ -54,5 +57,53 @@ export class SystemRoleService extends AbstractService {
     }
 
     await this.entityManager.insert(SysRoleEntity, item);
+  }
+
+  async updateRole(item: SysRoleUpdateReqDto): Promise<void> {
+    if (item.parentId !== TREE_ROOT_NODE_ID) {
+      const parent = await this.entityManager.findOne(SysRoleEntity, {
+        select: ['id'],
+        where: {
+          id: item.parentId,
+        },
+      });
+
+      if (isEmpty(parent)) {
+        throw new ApiFailedException(ErrorEnum.ParentRoleIdErrorCode);
+      }
+    }
+
+    if (item.id === item.parentId) {
+      throw new ApiFailedException(ErrorEnum.ParentRoleErrorCode);
+    }
+
+    // 查找未修改前角色ID所有的子项，防止将父级菜单修改成自己的子项导致数据丢失
+    let lastQueryIds: number[] = [item.id];
+    const allSubRoleIds: number[] = [];
+
+    do {
+      const pmIds = await this.entityManager
+        .createQueryBuilder(SysRoleEntity, 'role')
+        .select(['role.id'])
+        .where('FIND_IN_SET(parent_id, :ids)', {
+          ids: lastQueryIds.join(','),
+        })
+        .getMany();
+
+      lastQueryIds = pmIds.map((e) => e.id);
+      allSubRoleIds.push(...lastQueryIds);
+    } while (lastQueryIds.length > 0);
+
+    if (allSubRoleIds.includes(item.parentId)) {
+      throw new ApiFailedException(ErrorEnum.SetParentIdErrorCode);
+    }
+
+    await this.entityManager.update(
+      SysRoleEntity,
+      { id: item.id },
+      {
+        ...omit(item, 'id'),
+      },
+    );
   }
 }

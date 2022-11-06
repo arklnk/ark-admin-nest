@@ -4,6 +4,7 @@ import {
   SysRoleAddReqDto,
   SysRoleDeleteReqDto,
   SysRoleListItemRespDto,
+  SysRoleUpdateReqDto,
 } from './role.dto';
 import { SystemRoleService } from './role.service';
 import { wrapResponse } from '/@/common/utils/swagger';
@@ -40,5 +41,13 @@ export class SystemRoleController {
   })
   async add(@Body() body: SysRoleAddReqDto) {
     await this.roleService.addRole(body);
+  }
+
+  @Post('update')
+  @ApiOkResponse({
+    type: wrapResponse(),
+  })
+  async update(@Body() body: SysRoleUpdateReqDto) {
+    await this.roleService.updateRole(body);
   }
 }
