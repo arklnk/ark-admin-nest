@@ -9,12 +9,17 @@ import {
   SysPermMenuUpdateReqDto,
 } from './permmenu.dto';
 import { AbstractService } from '/@/common/abstract.service';
-import { UserPermCachePrefix, UserRoleCahcePrefix } from '/@/constants/cache';
+import { UserPermCachePrefix } from '/@/constants/cache';
 import { TREE_ROOT_NODE_ID } from '/@/constants/core';
 import { ErrorEnum } from '/@/constants/errorx';
-import { BoolTypeEnum, SysMenuTypeEnum } from '/@/constants/type';
+import {
+  BoolTypeEnum,
+  StatusTypeEnum,
+  SysMenuTypeEnum,
+} from '/@/constants/type';
 import { SysPermMenuEntity } from '/@/entities/sys-perm-menu.entity';
 import { SysRoleEntity } from '/@/entities/sys-role.entity';
+import { SysUserEntity } from '/@/entities/sys-user.entity';
 import { ApiFailedException } from '/@/exceptions/api-failed.exception';
 import { AppConfigService } from '/@/shared/services/app-config.service';
 import { AppGeneralService } from '/@/shared/services/app-general.service';
@@ -86,15 +91,14 @@ export class SystemPermMenuService extends AbstractService {
     }
 
     // 判断用户是否在该权限菜单的管理范围内才可进行删除操作
-    const isRootUser = this.generalService.isRootUser(uid);
     let hasDeleteOperate = true;
 
-    if (!isRootUser) {
+    if (!this.generalService.isRootUser(uid)) {
       const permmenuIds = await this.getUserPermMenuIds(uid);
       hasDeleteOperate = permmenuIds.includes(item.id);
     }
 
-    if (!isRootUser && !hasDeleteOperate) {
+    if (!hasDeleteOperate) {
       throw new ApiFailedException(ErrorEnum.NotPermMenuErrorCode);
     }
 
@@ -166,7 +170,7 @@ export class SystemPermMenuService extends AbstractService {
   /**
    * 检查父级权限菜单ID合法性，不存在或权限不能作为父级菜单
    */
-  async checkPermMenuParentInvalid(pid: number): Promise<void> {
+  private async checkPermMenuParentInvalid(pid: number): Promise<void> {
     if (pid === TREE_ROOT_NODE_ID) return;
 
     const parent = await this.entityManager.findOne(SysPermMenuEntity, {
@@ -188,7 +192,7 @@ export class SystemPermMenuService extends AbstractService {
   /**
    * 判断用户新增、更新权限时是否越级更新自己未拥有的权限
    */
-  async checkUserPermissionExceed(
+  private async checkUserPermissionExceed(
     uid: number,
     permissions: string[],
   ): Promise<void> {
@@ -207,12 +211,15 @@ export class SystemPermMenuService extends AbstractService {
   /**
    * 获取用户所有的权限菜单ID
    */
-  async getUserPermMenuIds(uid: number): Promise<number[]> {
-    const roleIdsStr = await this.redisService
-      .getClient()
-      .get(`${UserRoleCahcePrefix}${uid}`);
+  private async getUserPermMenuIds(uid: number): Promise<number[]> {
+    const user = await this.entityManager.findOne(SysUserEntity, {
+      select: ['roleIds'],
+      where: {
+        id: uid,
+      },
+    });
 
-    const roleIds: number[] = JSON.parse(roleIdsStr);
+    const roleIds = await this.getAvailableRoleIds(user.roleIds);
 
     const rolesInfo = await this.entityManager.find(SysRoleEntity, {
       select: ['permMenuIds'],
@@ -228,5 +235,36 @@ export class SystemPermMenuService extends AbstractService {
     userHasPermMenuIds = uniq(userHasPermMenuIds);
 
     return userHasPermMenuIds;
+  }
+
+  /**
+   * 获取当前所有可用的角色信息（父角色会拥有所有的子级角色权限）
+   */
+  private async getAvailableRoleIds(roleIds: number[]): Promise<number[]> {
+    let allSubRoles: number[] = [...roleIds];
+    let lastQueryIds: number[] = [...roleIds];
+
+    do {
+      if (lastQueryIds.length > 0) {
+        const roleids = await this.entityManager
+          .createQueryBuilder(SysRoleEntity, 'role')
+          .select(['role.id'])
+          .where('FIND_IN_SET(parent_id, :ids)', {
+            ids: lastQueryIds.join(','),
+          })
+          .andWhere('status != :status', { status: StatusTypeEnum.Disable })
+          .getMany();
+
+        lastQueryIds = roleids
+          .map((e) => e.id)
+          .filter((e) => !lastQueryIds.includes(e) && !allSubRoles.includes(e));
+        allSubRoles.push(...lastQueryIds);
+      }
+    } while (lastQueryIds.length > 0);
+
+    // 移除重复id
+    allSubRoles = uniq(allSubRoles);
+
+    return allSubRoles;
   }
 }

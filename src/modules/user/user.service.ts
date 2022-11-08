@@ -10,7 +10,6 @@ import {
   UserLoginCaptchaCachePrefix,
   UserOnlineCachePrefix,
   UserPermCachePrefix,
-  UserRoleCahcePrefix,
 } from '/@/constants/cache';
 import { AbstractService } from '/@/common/abstract.service';
 import {
@@ -168,41 +167,7 @@ export class UserService extends AbstractService {
       return result;
     }
 
-    // 查询用户所拥有的的角色，包括子角色（父角色会拥有所有的子级角色权限）
-    let allSubRoles: number[] = [];
-
-    const roleIdCache = await this.redisService
-      .getClient()
-      .get(`${UserRoleCahcePrefix}${user.id}`);
-
-    // 判断是否存在缓存
-    if (isEmpty(roleIdCache)) {
-      let lastQueryIds: number[] = [].concat(user.roleIds);
-      allSubRoles = [].concat(user.roleIds);
-
-      do {
-        const roleids = await this.entityManager
-          .createQueryBuilder(SysRoleEntity, 'role')
-          .select(['role.id'])
-          .where('FIND_IN_SET(parent_id, :ids)', {
-            ids: lastQueryIds.join(','),
-          })
-          .getMany();
-
-        lastQueryIds = roleids.map((e) => e.id);
-        allSubRoles.push(...lastQueryIds);
-      } while (lastQueryIds.length > 0);
-
-      // 移除重复id
-      allSubRoles = uniq(allSubRoles);
-
-      // 缓存角色，用以优化后续查询
-      await this.redisService
-        .getClient()
-        .set(`${UserRoleCahcePrefix}${user.id}`, JSON.stringify(allSubRoles));
-    } else {
-      allSubRoles = JSON.parse(roleIdCache);
-    }
+    const allSubRoles = await this.getAvailableRoleIds(user.roleIds);
 
     // 查找相关的角色信息
     const roles = await this.entityManager.find<SysRoleEntityTreeNode>(
@@ -215,31 +180,11 @@ export class UserService extends AbstractService {
       },
     );
 
-    // 过滤禁用的角色
-    // 如果父级角色被禁用，那么相对应的子角色也会被全部禁用
-    const rolesTree: SysRoleEntityTreeNode[] = [];
-    const nodeMap = new Map<number, SysRoleEntityTreeNode>();
-
-    for (const r of roles) {
-      r.children = r.children || [];
-      nodeMap.set(r.id, r);
-    }
-
-    for (const r of roles) {
-      const parent = nodeMap.get(r.parentId);
-      if (r.status === StatusTypeEnum.Enable) {
-        (parent ? parent.children : rolesTree).push(r);
-      }
-    }
-
     // 处理过滤后的角色所拥有的权限菜单编号
     let permmenuIds: number[] = [];
 
-    for (let i = 0; i < rolesTree.length; i++) {
-      permmenuIds.push(...rolesTree[i].permMenuIds);
-
-      !isEmpty(rolesTree[i]) &&
-        rolesTree.splice(i + 1, 0, ...rolesTree[i].children);
+    for (let i = 0; i < roles.length; i++) {
+      permmenuIds.push(...roles[i].permMenuIds);
     }
 
     // 移除重复编号
@@ -281,12 +226,41 @@ export class UserService extends AbstractService {
     return new UserPermMenuRespDto(menus, uniq(perms));
   }
 
+  /**
+   * 获取当前所有可用的角色信息（父角色会拥有所有的子级角色权限）
+   */
+  private async getAvailableRoleIds(roleIds: number[]): Promise<number[]> {
+    let allSubRoles: number[] = [...roleIds];
+    let lastQueryIds: number[] = [...roleIds];
+
+    do {
+      if (lastQueryIds.length > 0) {
+        const roleids = await this.entityManager
+          .createQueryBuilder(SysRoleEntity, 'role')
+          .select(['role.id'])
+          .where('FIND_IN_SET(parent_id, :ids)', {
+            ids: lastQueryIds.join(','),
+          })
+          .andWhere('status != :status', { status: StatusTypeEnum.Disable })
+          .getMany();
+
+        lastQueryIds = roleids
+          .map((e) => e.id)
+          .filter((e) => !lastQueryIds.includes(e) && !allSubRoles.includes(e));
+        allSubRoles.push(...lastQueryIds);
+      }
+    } while (lastQueryIds.length > 0);
+
+    // 移除重复id
+    allSubRoles = uniq(allSubRoles);
+
+    return allSubRoles;
+  }
+
   async userLogout(uid: number): Promise<void> {
-    const keys = [
-      UserOnlineCachePrefix,
-      UserPermCachePrefix,
-      UserRoleCahcePrefix,
-    ].map((e) => `${e}${uid}`);
+    const keys = [UserOnlineCachePrefix, UserPermCachePrefix].map(
+      (e) => `${e}${uid}`,
+    );
 
     await this.redisService.getClient().del(keys);
   }

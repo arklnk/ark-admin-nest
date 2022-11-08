@@ -278,7 +278,7 @@ export class SystemUserService extends AbstractService {
   /**
    * 检查Job、Dept、Profession ID是否存在，不存在则报错
    */
-  async checkJobOrDeptOrProfExists(
+  private async checkJobOrDeptOrProfExists(
     jobId: number,
     deptId: number,
     profId: number,
@@ -320,7 +320,7 @@ export class SystemUserService extends AbstractService {
   /**
    * 指定部门编号获取自身以及自身子部门的所有ID
    */
-  async getSubDeptAndSelfIds(id: number): Promise<number[]> {
+  private async getSubDeptAndSelfIds(id: number): Promise<number[]> {
     const allDeptIds: number[] = [];
     let lastQueryIds: number[] = [id];
 

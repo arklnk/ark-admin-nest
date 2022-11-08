@@ -8,6 +8,7 @@ import {
 import { AbstractService } from '/@/common/abstract.service';
 import { TREE_ROOT_NODE_ID } from '/@/constants/core';
 import { ErrorEnum } from '/@/constants/errorx';
+import { StatusTypeEnum } from '/@/constants/type';
 import { SysRoleEntity } from '/@/entities/sys-role.entity';
 import { SysUserEntity } from '/@/entities/sys-user.entity';
 import { ApiFailedException } from '/@/exceptions/api-failed.exception';
@@ -43,35 +44,13 @@ export class SystemRoleService extends AbstractService {
   }
 
   async addRole(item: SysRoleAddReqDto): Promise<void> {
-    if (item.parentId !== TREE_ROOT_NODE_ID) {
-      const parent = await this.entityManager.findOne(SysRoleEntity, {
-        select: ['id'],
-        where: {
-          id: item.parentId,
-        },
-      });
-
-      if (isEmpty(parent)) {
-        throw new ApiFailedException(ErrorEnum.ParentRoleIdErrorCode);
-      }
-    }
+    await this.checkParentRoleInvalid(item.parentId);
 
     await this.entityManager.insert(SysRoleEntity, item);
   }
 
   async updateRole(item: SysRoleUpdateReqDto): Promise<void> {
-    if (item.parentId !== TREE_ROOT_NODE_ID) {
-      const parent = await this.entityManager.findOne(SysRoleEntity, {
-        select: ['id'],
-        where: {
-          id: item.parentId,
-        },
-      });
-
-      if (isEmpty(parent)) {
-        throw new ApiFailedException(ErrorEnum.ParentRoleIdErrorCode);
-      }
-    }
+    await this.checkParentRoleInvalid(item.parentId);
 
     if (item.id === item.parentId) {
       throw new ApiFailedException(ErrorEnum.ParentRoleErrorCode);
@@ -105,5 +84,27 @@ export class SystemRoleService extends AbstractService {
         ...omit(item, 'id'),
       },
     );
+  }
+
+  /**
+   * 检查父级角色是否合法
+   */
+  private async checkParentRoleInvalid(pid: number): Promise<void> {
+    if (pid !== TREE_ROOT_NODE_ID) {
+      const parent = await this.entityManager.findOne(SysRoleEntity, {
+        select: ['id', 'status'],
+        where: {
+          id: pid,
+        },
+      });
+
+      if (isEmpty(parent)) {
+        throw new ApiFailedException(ErrorEnum.ParentRoleIdErrorCode);
+      }
+
+      if (parent.status === StatusTypeEnum.Disable) {
+        throw new ApiFailedException(ErrorEnum.ParentRoleIdErrorCode);
+      }
+    }
   }
 }
