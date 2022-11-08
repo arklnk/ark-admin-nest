@@ -1,5 +1,7 @@
 import { OmitType } from '@nestjs/swagger';
+import { ValidateIf } from 'class-validator';
 import { PageOptionsDto } from '/@/common/dto/page-options.dto';
+import { TREE_ROOT_NODE_ID } from '/@/constants/core';
 import { NumberField, StringField } from '/@/decorators/field.decorator';
 import { SysDictionaryEntity } from '/@/entities/sys-dictionary.entity';
 
@@ -33,6 +35,7 @@ export class ConfigDictAddReqDto {
     min: 0,
     max: 1,
   })
+  @ValidateIf((o) => o.parentId !== TREE_ROOT_NODE_ID)
   status: number;
 
   @NumberField({
@@ -40,6 +43,7 @@ export class ConfigDictAddReqDto {
     min: 1,
     max: 12,
   })
+  @ValidateIf((o) => o.parentId !== TREE_ROOT_NODE_ID)
   type: number;
 
   @StringField({
@@ -49,6 +53,7 @@ export class ConfigDictAddReqDto {
   uniqueKey: string;
 
   @StringField()
+  @ValidateIf((o) => o.parentId !== TREE_ROOT_NODE_ID)
   value: string;
 }
 
