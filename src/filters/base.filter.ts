@@ -11,6 +11,7 @@ import {
 import { ApiFailedException } from '/@/exceptions/api-failed.exception';
 import { AppConfigService } from '/@/shared/services/app-config.service';
 import { ErrorEnum } from '/@/constants/errorx';
+import { errorMsgMap } from '/@/constants/errorm';
 
 @Catch()
 export class BaseExceptionFilter implements ExceptionFilter {
@@ -20,33 +21,31 @@ export class BaseExceptionFilter implements ExceptionFilter {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
 
-    // response status code
+    // 响应结果码判断
     const httpStatus =
       exception instanceof HttpException
         ? exception.getStatus()
         : HttpStatus.INTERNAL_SERVER_ERROR;
 
-    // api error code
-    let apiErrorCode = ErrorEnum.ServerErrorCode;
+    const apiErrorCode =
+      exception instanceof ApiFailedException
+        ? exception.getErrorCode()
+        : ErrorEnum.ServerErrorCode;
+
     let errorMessage =
-      exception instanceof HttpException
-        ? exception.message
-        : ErrorEnum[apiErrorCode];
+      exception instanceof ApiFailedException
+        ? errorMsgMap[apiErrorCode]
+        : `${exception}`;
 
-    if (exception instanceof ApiFailedException) {
-      apiErrorCode = exception.getErrorCode();
-    }
-
-    // system internal unknown error
-    // remove detailed error information from the production environment
+    // 系统内部错误时，在生产模式下隐藏具体异常消息
     if (
-      this.configService.isDevelopment &&
-      httpStatus >= HttpStatus.INTERNAL_SERVER_ERROR
+      this.configService.isProduction &&
+      httpStatus === HttpStatus.INTERNAL_SERVER_ERROR
     ) {
-      errorMessage = `${exception}`;
+      errorMessage = errorMessage[ErrorEnum.ServerErrorCode];
     }
 
-    // set base response
+    // 返回基础响应结果
     const resBody: IBaseResponse = {
       msg: errorMessage,
       code: apiErrorCode,
