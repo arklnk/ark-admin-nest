@@ -223,7 +223,10 @@ export class UserService extends AbstractService {
       }
     });
 
-    return new UserPermMenuRespDto(menus, uniq(perms));
+    return new UserPermMenuRespDto(
+      menus,
+      uniq(perms).map((e) => `/${e.replace(/^\/+/, '')}`),
+    );
   }
 
   /**

@@ -82,9 +82,10 @@ export class Authguard implements CanActivate {
 
     const path = request.path;
     const permmenuArr: string[] = JSON.parse(permmenu);
-    const prefixUrl = `/${this.configService.appConfig.globalPrefix}/`;
+    const prefixUrl = `/${this.configService.appConfig.globalPrefix}`;
+    const reg = new RegExp(`^${prefixUrl}`);
 
-    if (!permmenuArr.includes(path.replace(prefixUrl, ''))) {
+    if (!permmenuArr.includes(path.replace(reg, ''))) {
       throw new ApiFailedException(ErrorEnum.NotPermMenuErrorCode);
     }
 
