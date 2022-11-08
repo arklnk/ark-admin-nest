@@ -45,4 +45,5 @@ export const errorMsgMap: Record<ErrorEnum, string> = {
   [ErrorEnum.PermMenuIdErrorCode]: '权限菜单不存在',
   [ErrorEnum.RoleIdErrorCode]: '角色不存在',
   [ErrorEnum.UserIdErrorCode]: '用户不存在',
+  [ErrorEnum.ChildRoleNotDisabledErrorCode]: '子级角色存在可使用角色',
 };

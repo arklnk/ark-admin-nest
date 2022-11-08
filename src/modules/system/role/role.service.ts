@@ -56,6 +56,20 @@ export class SystemRoleService extends AbstractService {
       throw new ApiFailedException(ErrorEnum.ParentRoleErrorCode);
     }
 
+    // 如果需要禁用当前角色，则需要判断当前子角色下是否全被禁用
+    if (item.status === StatusTypeEnum.Disable) {
+      const countEnable = await this.entityManager.count(SysRoleEntity, {
+        where: {
+          parentId: item.id,
+          status: StatusTypeEnum.Enable,
+        },
+      });
+
+      if (countEnable) {
+        throw new ApiFailedException(ErrorEnum.ChildRoleNotDisabledErrorCode);
+      }
+    }
+
     // 查找未修改前角色ID所有的子项，防止将父级菜单修改成自己的子项导致数据丢失
     let lastQueryIds: number[] = [item.id];
     const allSubRoleIds: number[] = [];

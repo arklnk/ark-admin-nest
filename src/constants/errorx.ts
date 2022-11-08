@@ -46,4 +46,5 @@ export enum ErrorEnum {
   PermMenuIdErrorCode = 1042,
   RoleIdErrorCode = 1043,
   UserIdErrorCode = 1044,
+  ChildRoleNotDisabledErrorCode = 1045,
 }
