@@ -92,7 +92,7 @@ export function StringField(
     required = true,
   } = options;
 
-  const decorators = [IsNotEmpty({ each }), IsString({ each }), ToTrim()];
+  const decorators = [IsString({ each }), ToTrim()];
 
   if (each) {
     decorators.push(ToArray());
@@ -116,6 +116,8 @@ export function StringField(
 
   if (!required) {
     decorators.push(IsOptional());
+  } else {
+    decorators.push(IsNotEmpty({ each }));
   }
 
   return applyDecorators(...decorators);
