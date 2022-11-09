@@ -167,7 +167,7 @@ export class UserService extends AbstractService {
       return result;
     }
 
-    const allSubRoles = await this.getAvailableRoleIds(user.roleIds);
+    const allSubRoles = await this.getAllSubRoleIds(user.roleIds);
 
     // 查找相关的角色信息
     const roles = await this.entityManager.find<SysRoleEntityTreeNode>(
@@ -176,6 +176,7 @@ export class UserService extends AbstractService {
         select: ['status', 'id', 'parentId', 'permMenuIds'],
         where: {
           id: In(allSubRoles),
+          status: StatusTypeEnum.Enable,
         },
       },
     );
@@ -230,28 +231,26 @@ export class UserService extends AbstractService {
   }
 
   /**
-   * 获取当前所有可用的角色信息（父角色会拥有所有的子级角色权限）
+   * 给定角色数组查找所有的子角色ID包括自身
    */
-  private async getAvailableRoleIds(roleIds: number[]): Promise<number[]> {
+  private async getAllSubRoleIds(roleIds: number[]): Promise<number[]> {
     let allSubRoles: number[] = [...roleIds];
     let lastQueryIds: number[] = [...roleIds];
 
     do {
-      if (lastQueryIds.length > 0) {
-        const roleids = await this.entityManager
-          .createQueryBuilder(SysRoleEntity, 'role')
-          .select(['role.id'])
-          .where('FIND_IN_SET(parent_id, :ids)', {
-            ids: lastQueryIds.join(','),
-          })
-          .andWhere('status != :status', { status: StatusTypeEnum.Disable })
-          .getMany();
+      const roleids = await this.entityManager
+        .createQueryBuilder(SysRoleEntity, 'role')
+        .select(['role.id'])
+        .where('FIND_IN_SET(parent_id, :ids)', {
+          ids: lastQueryIds.join(','),
+        })
+        .getMany();
 
-        lastQueryIds = roleids
-          .map((e) => e.id)
-          .filter((e) => !lastQueryIds.includes(e) && !allSubRoles.includes(e));
-        allSubRoles.push(...lastQueryIds);
-      }
+      lastQueryIds = roleids
+        .map((e) => e.id)
+        .filter((e) => !lastQueryIds.includes(e) && !allSubRoles.includes(e));
+
+      allSubRoles.push(...lastQueryIds);
     } while (lastQueryIds.length > 0);
 
     // 移除重复id

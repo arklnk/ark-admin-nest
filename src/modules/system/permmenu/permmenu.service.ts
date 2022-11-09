@@ -219,12 +219,13 @@ export class SystemPermMenuService extends AbstractService {
       },
     });
 
-    const roleIds = await this.getAvailableRoleIds(user.roleIds);
+    const roleIds = await this.getAllSubRoleIds(user.roleIds);
 
     const rolesInfo = await this.entityManager.find(SysRoleEntity, {
       select: ['permMenuIds'],
       where: {
         id: In(roleIds),
+        status: StatusTypeEnum.Enable,
       },
     });
 
@@ -238,28 +239,26 @@ export class SystemPermMenuService extends AbstractService {
   }
 
   /**
-   * 获取当前所有可用的角色信息（父角色会拥有所有的子级角色权限）
+   * 给定角色数组查找所有的子角色ID包括自身
    */
-  private async getAvailableRoleIds(roleIds: number[]): Promise<number[]> {
+  private async getAllSubRoleIds(roleIds: number[]): Promise<number[]> {
     let allSubRoles: number[] = [...roleIds];
     let lastQueryIds: number[] = [...roleIds];
 
     do {
-      if (lastQueryIds.length > 0) {
-        const roleids = await this.entityManager
-          .createQueryBuilder(SysRoleEntity, 'role')
-          .select(['role.id'])
-          .where('FIND_IN_SET(parent_id, :ids)', {
-            ids: lastQueryIds.join(','),
-          })
-          .andWhere('status != :status', { status: StatusTypeEnum.Disable })
-          .getMany();
+      const roleids = await this.entityManager
+        .createQueryBuilder(SysRoleEntity, 'role')
+        .select(['role.id'])
+        .where('FIND_IN_SET(parent_id, :ids)', {
+          ids: lastQueryIds.join(','),
+        })
+        .getMany();
 
-        lastQueryIds = roleids
-          .map((e) => e.id)
-          .filter((e) => !lastQueryIds.includes(e) && !allSubRoles.includes(e));
-        allSubRoles.push(...lastQueryIds);
-      }
+      lastQueryIds = roleids
+        .map((e) => e.id)
+        .filter((e) => !lastQueryIds.includes(e) && !allSubRoles.includes(e));
+
+      allSubRoles.push(...lastQueryIds);
     } while (lastQueryIds.length > 0);
 
     // 移除重复id
