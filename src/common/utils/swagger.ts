@@ -7,7 +7,7 @@ import type { ApiPropertyOptions } from '@nestjs/swagger';
 
 import { Type } from '@nestjs/common';
 import { ApiProperty } from '@nestjs/swagger';
-import { BaseResponse, PaginationInfo } from '../dto/base-response.dto';
+import { BaseResponse, PaginationInfo } from '../dtos/base-response.dto';
 
 type WrapRespOptions = ApiPropertyOptions & {
   // data struct

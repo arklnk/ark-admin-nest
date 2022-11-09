@@ -1,6 +1,6 @@
 import { OmitType } from '@nestjs/swagger';
 import { ValidateIf } from 'class-validator';
-import { PageOptionsDto } from '/@/common/dto/page-options.dto';
+import { PageOptionsDto } from '/@/common/dtos/page-options.dto';
 import { TREE_ROOT_NODE_ID } from '/@/constants/core';
 import { NumberField, StringField } from '/@/decorators/field.decorator';
 import { SysDictionaryEntity } from '/@/entities/sys-dictionary.entity';

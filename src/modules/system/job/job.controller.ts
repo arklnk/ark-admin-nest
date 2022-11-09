@@ -7,7 +7,7 @@ import {
   SysJobUpdateReqDto,
 } from './job.dto';
 import { SystemJobService } from './job.service';
-import { PageOptionsDto } from '/@/common/dto/page-options.dto';
+import { PageOptionsDto } from '/@/common/dtos/page-options.dto';
 import { wrapResponse } from '/@/common/utils/swagger';
 import { ApiSecurityAuth } from '/@/decorators/swagger.decorator';
 
