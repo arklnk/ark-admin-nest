@@ -25,7 +25,7 @@ export class SystemProfessionService extends AbstractService {
     });
 
     if (count > 0) {
-      throw new ApiFailedException(ErrorEnum.DeleteProfessionErrorCode);
+      throw new ApiFailedException(ErrorEnum.CODE_1119);
     }
 
     await this.entityManager.delete(SysProfessionEntity, { id });

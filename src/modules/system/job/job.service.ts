@@ -25,7 +25,7 @@ export class SystemJobService extends AbstractService {
     });
 
     if (count > 0) {
-      throw new ApiFailedException(ErrorEnum.DeleteJobErrorCode);
+      throw new ApiFailedException(ErrorEnum.CODE_1120);
     }
 
     await this.entityManager.delete(SysJobEntity, { id });

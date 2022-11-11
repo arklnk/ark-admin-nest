@@ -87,45 +87,45 @@ export class UserService extends AbstractService {
     ip: string,
     uri: string,
   ): Promise<UserLoginRespDto> {
-    // check captcha is invalid
+    // 检查验证码是否正确
     const captchaKey = `${UserLoginCaptchaCachePrefix}${dto.captchaId}`;
     const captcha = await this.redisService.getClient().get(captchaKey);
     if (isEmpty(captcha) || dto.verifyCode !== captcha) {
-      throw new ApiFailedException(ErrorEnum.CaptchaErrorCode);
+      throw new ApiFailedException(ErrorEnum.CODE_1021);
     }
 
-    // find user by account
+    // 查找用户账户
     const user = await this.entityManager.findOne(SysUserEntity, {
       select: ['account', 'password', 'id', 'status'],
       where: { account: dto.account },
     });
 
     if (isEmpty(user)) {
-      throw new ApiFailedException(ErrorEnum.AccountErrorCode);
+      throw new ApiFailedException(ErrorEnum.CODE_1022);
     }
 
-    // check password
+    // 检查密码
     const encryPwd = this.generalService.generateUserPassword(dto.password);
     if (user.password !== encryPwd) {
-      throw new ApiFailedException(ErrorEnum.PasswordErrorCode);
+      throw new ApiFailedException(ErrorEnum.CODE_1022);
     }
 
-    // check user status
+    // 判断用户是否被禁用
     if (user.status === StatusTypeEnum.Disable) {
-      throw new ApiFailedException(ErrorEnum.AccountDisableErrorCode);
+      throw new ApiFailedException(ErrorEnum.CODE_1024);
     }
 
-    // auth payload
+    // 生成JWT Token
     const payload: IAuthUser = { uid: user.id };
     const token = this.jwtService.sign(payload);
     const onlineKey = `${UserOnlineCachePrefix}${user.id}`;
 
-    // set expires token
+    // 设置Redis过期时间
     await this.redisService
       .getClient()
       .set(onlineKey, token, 'EX', this.configService.jwtConfig.expires);
 
-    // save login log
+    // 保存登录日志
     await this.entityManager.insert(SysLogEntity, {
       userId: user.id,
       status: StatusTypeEnum.Successful,
@@ -144,7 +144,7 @@ export class UserService extends AbstractService {
       .get(`${UserOnlineCachePrefix}${uid}`);
 
     if (isEmpty(token)) {
-      throw new ApiFailedException(ErrorEnum.AuthErrorCode);
+      throw new ApiFailedException(ErrorEnum.CODE_1026);
     }
 
     const user = await this.entityManager.findOne(SysUserEntity, {
@@ -327,7 +327,7 @@ export class UserService extends AbstractService {
     );
 
     if (user.password !== oldPasswordCipher) {
-      throw new ApiFailedException(ErrorEnum.PasswordErrorCode);
+      throw new ApiFailedException(ErrorEnum.CODE_1023);
     }
 
     const newPasswordCipher = this.generalService.generateUserPassword(

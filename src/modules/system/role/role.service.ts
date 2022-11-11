@@ -28,7 +28,7 @@ export class SystemRoleService extends AbstractService {
     });
 
     if (countChild > 0) {
-      throw new ApiFailedException(ErrorEnum.DeleteRoleErrorCode);
+      throw new ApiFailedException(ErrorEnum.CODE_1105);
     }
 
     const countUse = await this.entityManager
@@ -37,7 +37,7 @@ export class SystemRoleService extends AbstractService {
       .getCount();
 
     if (countUse > 0) {
-      throw new ApiFailedException(ErrorEnum.RoleIsUsingErrorCode);
+      throw new ApiFailedException(ErrorEnum.CODE_1106);
     }
 
     await this.entityManager.delete(SysRoleEntity, { id: roleId });
@@ -53,7 +53,7 @@ export class SystemRoleService extends AbstractService {
     await this.checkParentRoleInvalid(item.parentId);
 
     if (item.id === item.parentId) {
-      throw new ApiFailedException(ErrorEnum.ParentRoleErrorCode);
+      throw new ApiFailedException(ErrorEnum.CODE_1107);
     }
 
     // 如果需要禁用当前角色，则需要判断当前子角色下是否全被禁用
@@ -66,7 +66,7 @@ export class SystemRoleService extends AbstractService {
       });
 
       if (countEnable) {
-        throw new ApiFailedException(ErrorEnum.ChildRoleNotDisabledErrorCode);
+        throw new ApiFailedException(ErrorEnum.CODE_1108);
       }
     }
 
@@ -88,7 +88,7 @@ export class SystemRoleService extends AbstractService {
     } while (lastQueryIds.length > 0);
 
     if (allSubRoleIds.includes(item.parentId)) {
-      throw new ApiFailedException(ErrorEnum.SetParentIdErrorCode);
+      throw new ApiFailedException(ErrorEnum.CODE_1109);
     }
 
     await this.entityManager.update(
@@ -101,7 +101,7 @@ export class SystemRoleService extends AbstractService {
   }
 
   /**
-   * 检查父级角色是否合法
+   * 检查父级角色是否存在或是否被禁用，是则抛出异常
    */
   private async checkParentRoleInvalid(pid: number): Promise<void> {
     if (pid !== TREE_ROOT_NODE_ID) {
@@ -113,11 +113,11 @@ export class SystemRoleService extends AbstractService {
       });
 
       if (isEmpty(parent)) {
-        throw new ApiFailedException(ErrorEnum.ParentRoleIdErrorCode);
+        throw new ApiFailedException(ErrorEnum.CODE_1110);
       }
 
       if (parent.status === StatusTypeEnum.Disable) {
-        throw new ApiFailedException(ErrorEnum.ParentRoleIdErrorCode);
+        throw new ApiFailedException(ErrorEnum.CODE_1111);
       }
     }
   }

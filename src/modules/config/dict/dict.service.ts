@@ -14,24 +14,13 @@ import { SysDictionaryEntity } from '/@/entities/sys-dictionary.entity';
 import { isEmpty, omit } from 'lodash';
 import { ApiFailedException } from '/@/exceptions/api-failed.exception';
 import { ErrorEnum } from '/@/constants/errorx';
+import { TREE_ROOT_NODE_ID } from '/@/constants/core';
+import { AppConfigService } from '/@/shared/services/app-config.service';
 
 @Injectable()
 export class ConfigDictService extends AbstractService {
-  async addConfigDict(item: ConfigDictAddReqDto): Promise<void> {
-    if (item.parentId !== 0) {
-      // if dict data, check parent dict is exists
-      const parent = await this.entityManager.findOne(SysDictionaryEntity, {
-        select: ['id'],
-        where: {
-          parentId: 0,
-          id: item.parentId,
-        },
-      });
-      if (isEmpty(parent)) {
-        throw new ApiFailedException(ErrorEnum.ParentDictionaryIdErrorCode);
-      }
-    }
-    await this.entityManager.insert(SysDictionaryEntity, item);
+  constructor(private configService: AppConfigService) {
+    super();
   }
 
   async getConfigDictDataByPage(
@@ -85,7 +74,7 @@ export class ConfigDictService extends AbstractService {
           'value',
         ],
         where: {
-          parentId: 0,
+          parentId: TREE_ROOT_NODE_ID,
         },
       },
     );
@@ -94,21 +83,84 @@ export class ConfigDictService extends AbstractService {
   }
 
   async deleteConfigDict(id: number): Promise<void> {
-    await this.entityManager
-      .createQueryBuilder()
-      .delete()
-      .from(SysDictionaryEntity)
-      .where('id = :id', { id })
-      .orWhere('parentId = :id', { id })
-      .execute();
+    if (id <= this.configService.appConfig.protectSysDictionaryMaxId) {
+      throw new ApiFailedException(ErrorEnum.CODE_1203);
+    }
+
+    const config = await this.entityManager.findOne(SysDictionaryEntity, {
+      select: ['parentId'],
+      where: {
+        id,
+      },
+    });
+
+    // 删除字典集时则需要判断是否存在字典配置项
+    if (config.parentId === TREE_ROOT_NODE_ID) {
+      const countChild = await this.entityManager.count(SysDictionaryEntity, {
+        where: {
+          parentId: id,
+        },
+      });
+
+      if (countChild > 0) {
+        throw new ApiFailedException(ErrorEnum.CODE_1204);
+      }
+    }
+
+    await this.entityManager.delete(SysDictionaryEntity, { id });
   }
 
-  async updateConfigDict(body: ConfigDictUpdateReqDto): Promise<void> {
+  async addConfigDict(item: ConfigDictAddReqDto): Promise<void> {
+    if (item.parentId !== TREE_ROOT_NODE_ID) {
+      // if dict data, check parent dict is exists
+      const parent = await this.entityManager.findOne(SysDictionaryEntity, {
+        select: ['id'],
+        where: {
+          parentId: 0,
+          id: item.parentId,
+        },
+      });
+
+      if (isEmpty(parent)) {
+        throw new ApiFailedException(ErrorEnum.CODE_1201);
+      }
+    }
+
+    const dict = await this.entityManager.findOne(SysDictionaryEntity, {
+      select: ['id'],
+      where: {
+        uniqueKey: item.uniqueKey,
+      },
+    });
+
+    if (!isEmpty(dict)) {
+      throw new ApiFailedException(ErrorEnum.CODE_1202);
+    }
+
+    await this.entityManager.insert(SysDictionaryEntity, item);
+  }
+
+  async updateConfigDict(item: ConfigDictUpdateReqDto): Promise<void> {
+    if (item.parentId !== TREE_ROOT_NODE_ID) {
+      // if dict data, check parent dict is exists
+      const parent = await this.entityManager.findOne(SysDictionaryEntity, {
+        select: ['id'],
+        where: {
+          parentId: 0,
+          id: item.parentId,
+        },
+      });
+
+      if (isEmpty(parent)) {
+        throw new ApiFailedException(ErrorEnum.CODE_1201);
+      }
+    }
+
     await this.entityManager.update(
       SysDictionaryEntity,
-      { id: body.id },
+      { id: item.id },
       {
-        ...omit(body, 'id'),
+        ...omit(item, 'id'),
       },
     );
   }
