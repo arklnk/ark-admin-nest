@@ -12,9 +12,14 @@ import { StatusTypeEnum } from '/@/constants/type';
 import { SysRoleEntity } from '/@/entities/sys-role.entity';
 import { SysUserEntity } from '/@/entities/sys-user.entity';
 import { ApiFailedException } from '/@/exceptions/api-failed.exception';
+import { AppConfigService } from '/@/shared/services/app-config.service';
 
 @Injectable()
 export class SystemRoleService extends AbstractService {
+  constructor(private configService: AppConfigService) {
+    super();
+  }
+
   async getRoleByList() {
     const roles = await this.entityManager.find(SysRoleEntity);
     return roles.map((e) => new SysRoleListItemRespDto(e)).toList();
@@ -31,9 +36,13 @@ export class SystemRoleService extends AbstractService {
       throw new ApiFailedException(ErrorEnum.CODE_1105);
     }
 
+    // 无法删除被使用的角色，超级管理员角色不计入使用范围
     const countUse = await this.entityManager
       .createQueryBuilder(SysUserEntity, 'user')
       .where('JSON_CONTAINS(user.role_ids, JSON_ARRAY(:id))', { id: roleId })
+      .andWhere('user.id != :rootId', {
+        rootId: this.configService.appConfig.rootUserId,
+      })
       .getCount();
 
     if (countUse > 0) {
