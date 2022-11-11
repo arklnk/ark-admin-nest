@@ -40,6 +40,8 @@ import { SysRoleEntity } from '/@/entities/sys-role.entity';
 import { In } from 'typeorm';
 import { AvatarGenerator } from '/@/providers/avatar-generator';
 import { AppGeneralService } from '/@/shared/services/app-general.service';
+import { SysDictionaryEntity } from '/@/entities/sys-dictionary.entity';
+import { CONFIG_SYS_CH_PWD, CONFIG_SYS_USERINFO } from '/@/constants/core';
 
 @Injectable()
 export class UserService extends AbstractService {
@@ -302,6 +304,17 @@ export class UserService extends AbstractService {
     uid: number,
     body: UserProfileUpdateReqDto,
   ): Promise<void> {
+    const config = await this.entityManager.findOne(SysDictionaryEntity, {
+      select: ['status'],
+      where: {
+        uniqueKey: CONFIG_SYS_USERINFO,
+      },
+    });
+
+    if (config.status === StatusTypeEnum.Disable) {
+      throw new ApiFailedException(ErrorEnum.CODE_1027);
+    }
+
     await this.entityManager.update(
       SysUserEntity,
       {
@@ -315,6 +328,17 @@ export class UserService extends AbstractService {
     uid: number,
     body: UserPasswordUpdateReqDto,
   ): Promise<void> {
+    const config = await this.entityManager.findOne(SysDictionaryEntity, {
+      select: ['status'],
+      where: {
+        uniqueKey: CONFIG_SYS_CH_PWD,
+      },
+    });
+
+    if (config.status === StatusTypeEnum.Disable) {
+      throw new ApiFailedException(ErrorEnum.CODE_1028);
+    }
+
     const user = await this.entityManager.findOne(SysUserEntity, {
       select: ['password'],
       where: {
