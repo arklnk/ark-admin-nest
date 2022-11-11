@@ -10,9 +10,14 @@ export class ApiFailedException extends HttpException {
   /**
    * 业务错误，请求结果仍为200
    */
-  constructor(errCode: ErrorEnum) {
-    super(`ApiFailedException: ${errCode}`, HttpStatus.OK);
-    this.errorCode = errCode;
+  constructor(err: ErrorEnum) {
+    super(`${err}`, HttpStatus.OK);
+    // CODE_500 str parse to 500 number
+    this.errorCode = Number(
+      Object.entries(ErrorEnum)
+        .find(([_, val]) => val === err)[0]
+        .replace('CODE_', ''),
+    );
   }
 
   getErrorCode(): number {

@@ -7,7 +7,7 @@ import {
   SysProfessionUpdateReqDto,
 } from './profession.dto';
 import { SystemProfessionService } from './profession.service';
-import { PageOptionsDto } from '/@/common/dto/page-options.dto';
+import { PageOptionsDto } from '/@/common/dtos/page-options.dto';
 import { wrapResponse } from '/@/common/utils/swagger';
 import { ApiSecurityAuth } from '/@/decorators/swagger.decorator';
 

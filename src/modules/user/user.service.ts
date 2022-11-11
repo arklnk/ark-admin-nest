@@ -40,6 +40,8 @@ import { SysRoleEntity } from '/@/entities/sys-role.entity';
 import { In } from 'typeorm';
 import { AvatarGenerator } from '/@/providers/avatar-generator';
 import { AppGeneralService } from '/@/shared/services/app-general.service';
+import { SysDictionaryEntity } from '/@/entities/sys-dictionary.entity';
+import { CONFIG_SYS_CH_PWD, CONFIG_SYS_USERINFO } from '/@/constants/core';
 
 @Injectable()
 export class UserService extends AbstractService {
@@ -87,45 +89,45 @@ export class UserService extends AbstractService {
     ip: string,
     uri: string,
   ): Promise<UserLoginRespDto> {
-    // check captcha is invalid
+    // 检查验证码是否正确
     const captchaKey = `${UserLoginCaptchaCachePrefix}${dto.captchaId}`;
     const captcha = await this.redisService.getClient().get(captchaKey);
     if (isEmpty(captcha) || dto.verifyCode !== captcha) {
-      throw new ApiFailedException(ErrorEnum.CaptchaErrorCode);
+      throw new ApiFailedException(ErrorEnum.CODE_1021);
     }
 
-    // find user by account
+    // 查找用户账户
     const user = await this.entityManager.findOne(SysUserEntity, {
       select: ['account', 'password', 'id', 'status'],
       where: { account: dto.account },
     });
 
     if (isEmpty(user)) {
-      throw new ApiFailedException(ErrorEnum.AccountErrorCode);
+      throw new ApiFailedException(ErrorEnum.CODE_1022);
     }
 
-    // check password
+    // 检查密码
     const encryPwd = this.generalService.generateUserPassword(dto.password);
     if (user.password !== encryPwd) {
-      throw new ApiFailedException(ErrorEnum.PasswordErrorCode);
+      throw new ApiFailedException(ErrorEnum.CODE_1022);
     }
 
-    // check user status
+    // 判断用户是否被禁用
     if (user.status === StatusTypeEnum.Disable) {
-      throw new ApiFailedException(ErrorEnum.AccountDisableErrorCode);
+      throw new ApiFailedException(ErrorEnum.CODE_1024);
     }
 
-    // auth payload
+    // 生成JWT Token
     const payload: IAuthUser = { uid: user.id };
     const token = this.jwtService.sign(payload);
     const onlineKey = `${UserOnlineCachePrefix}${user.id}`;
 
-    // set expires token
+    // 设置Redis过期时间
     await this.redisService
       .getClient()
       .set(onlineKey, token, 'EX', this.configService.jwtConfig.expires);
 
-    // save login log
+    // 保存登录日志
     await this.entityManager.insert(SysLogEntity, {
       userId: user.id,
       status: StatusTypeEnum.Successful,
@@ -144,7 +146,7 @@ export class UserService extends AbstractService {
       .get(`${UserOnlineCachePrefix}${uid}`);
 
     if (isEmpty(token)) {
-      throw new ApiFailedException(ErrorEnum.AuthErrorCode);
+      throw new ApiFailedException(ErrorEnum.CODE_1026);
     }
 
     const user = await this.entityManager.findOne(SysUserEntity, {
@@ -167,7 +169,7 @@ export class UserService extends AbstractService {
       return result;
     }
 
-    const allSubRoles = await this.getAvailableRoleIds(user.roleIds);
+    const allSubRoles = await this.getAllSubRoleIds(user.roleIds);
 
     // 查找相关的角色信息
     const roles = await this.entityManager.find<SysRoleEntityTreeNode>(
@@ -176,6 +178,7 @@ export class UserService extends AbstractService {
         select: ['status', 'id', 'parentId', 'permMenuIds'],
         where: {
           id: In(allSubRoles),
+          status: StatusTypeEnum.Enable,
         },
       },
     );
@@ -230,28 +233,26 @@ export class UserService extends AbstractService {
   }
 
   /**
-   * 获取当前所有可用的角色信息（父角色会拥有所有的子级角色权限）
+   * 给定角色数组查找所有的子角色ID包括自身
    */
-  private async getAvailableRoleIds(roleIds: number[]): Promise<number[]> {
+  private async getAllSubRoleIds(roleIds: number[]): Promise<number[]> {
     let allSubRoles: number[] = [...roleIds];
     let lastQueryIds: number[] = [...roleIds];
 
     do {
-      if (lastQueryIds.length > 0) {
-        const roleids = await this.entityManager
-          .createQueryBuilder(SysRoleEntity, 'role')
-          .select(['role.id'])
-          .where('FIND_IN_SET(parent_id, :ids)', {
-            ids: lastQueryIds.join(','),
-          })
-          .andWhere('status != :status', { status: StatusTypeEnum.Disable })
-          .getMany();
+      const roleids = await this.entityManager
+        .createQueryBuilder(SysRoleEntity, 'role')
+        .select(['role.id'])
+        .where('FIND_IN_SET(parent_id, :ids)', {
+          ids: lastQueryIds.join(','),
+        })
+        .getMany();
 
-        lastQueryIds = roleids
-          .map((e) => e.id)
-          .filter((e) => !lastQueryIds.includes(e) && !allSubRoles.includes(e));
-        allSubRoles.push(...lastQueryIds);
-      }
+      lastQueryIds = roleids
+        .map((e) => e.id)
+        .filter((e) => !lastQueryIds.includes(e) && !allSubRoles.includes(e));
+
+      allSubRoles.push(...lastQueryIds);
     } while (lastQueryIds.length > 0);
 
     // 移除重复id
@@ -303,6 +304,17 @@ export class UserService extends AbstractService {
     uid: number,
     body: UserProfileUpdateReqDto,
   ): Promise<void> {
+    const config = await this.entityManager.findOne(SysDictionaryEntity, {
+      select: ['status'],
+      where: {
+        uniqueKey: CONFIG_SYS_USERINFO,
+      },
+    });
+
+    if (config.status === StatusTypeEnum.Disable) {
+      throw new ApiFailedException(ErrorEnum.CODE_1027);
+    }
+
     await this.entityManager.update(
       SysUserEntity,
       {
@@ -316,6 +328,17 @@ export class UserService extends AbstractService {
     uid: number,
     body: UserPasswordUpdateReqDto,
   ): Promise<void> {
+    const config = await this.entityManager.findOne(SysDictionaryEntity, {
+      select: ['status'],
+      where: {
+        uniqueKey: CONFIG_SYS_CH_PWD,
+      },
+    });
+
+    if (config.status === StatusTypeEnum.Disable) {
+      throw new ApiFailedException(ErrorEnum.CODE_1028);
+    }
+
     const user = await this.entityManager.findOne(SysUserEntity, {
       select: ['password'],
       where: {
@@ -328,7 +351,7 @@ export class UserService extends AbstractService {
     );
 
     if (user.password !== oldPasswordCipher) {
-      throw new ApiFailedException(ErrorEnum.PasswordErrorCode);
+      throw new ApiFailedException(ErrorEnum.CODE_1023);
     }
 
     const newPasswordCipher = this.generalService.generateUserPassword(

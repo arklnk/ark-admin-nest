@@ -11,7 +11,6 @@ import {
 import { ApiFailedException } from '/@/exceptions/api-failed.exception';
 import { AppConfigService } from '/@/shared/services/app-config.service';
 import { ErrorEnum } from '/@/constants/errorx';
-import { errorMsgMap } from '/@/constants/errorm';
 
 @Catch()
 export class BaseExceptionFilter implements ExceptionFilter {
@@ -22,27 +21,25 @@ export class BaseExceptionFilter implements ExceptionFilter {
     const response = ctx.getResponse<Response>();
 
     // 响应结果码判断
-    const httpStatus =
+    const httpStatus: number =
       exception instanceof HttpException
         ? exception.getStatus()
         : HttpStatus.INTERNAL_SERVER_ERROR;
 
-    const apiErrorCode =
+    const apiErrorCode: number =
       exception instanceof ApiFailedException
         ? exception.getErrorCode()
-        : ErrorEnum.ServerErrorCode;
+        : httpStatus;
 
-    let errorMessage =
-      exception instanceof ApiFailedException
-        ? errorMsgMap[apiErrorCode]
-        : `${exception}`;
+    let errorMessage: string =
+      exception instanceof HttpException ? exception.message : `${exception}`;
 
     // 系统内部错误时，在生产模式下隐藏具体异常消息
     if (
       this.configService.isProduction &&
       httpStatus === HttpStatus.INTERNAL_SERVER_ERROR
     ) {
-      errorMessage = errorMessage[ErrorEnum.ServerErrorCode];
+      errorMessage = ErrorEnum.CODE_500;
     }
 
     // 返回基础响应结果

@@ -209,12 +209,11 @@ export class SystemUserService extends AbstractService {
     });
 
     let isExceed = false;
-    // 超级管理员则跳过检查
     if (!this.generalService.isRootUser(opuid)) {
       isExceed = item.roleIds.some((e) => !opUserInfo.roleIds.includes(e));
     }
     if (isExceed) {
-      throw new ApiFailedException(ErrorEnum.AssigningRolesErrorCode);
+      throw new ApiFailedException(ErrorEnum.CODE_1101);
     }
 
     // 创建用户
@@ -261,7 +260,7 @@ export class SystemUserService extends AbstractService {
       }
     }
     if (isExceed) {
-      throw new ApiFailedException(ErrorEnum.AssigningRolesErrorCode);
+      throw new ApiFailedException(ErrorEnum.CODE_1101);
     }
 
     // 更新用户
@@ -291,7 +290,7 @@ export class SystemUserService extends AbstractService {
     });
 
     if (isEmpty(jobInfo)) {
-      throw new ApiFailedException(ErrorEnum.JobIdErrorCode);
+      throw new ApiFailedException(ErrorEnum.CODE_1102);
     }
 
     const profInfo = await this.entityManager.findOne(SysProfessionEntity, {
@@ -302,7 +301,7 @@ export class SystemUserService extends AbstractService {
     });
 
     if (isEmpty(profInfo)) {
-      throw new ApiFailedException(ErrorEnum.ProfessionIdErrorCode);
+      throw new ApiFailedException(ErrorEnum.CODE_1103);
     }
 
     const deptInfo = await this.entityManager.findOne(SysDeptEntity, {
@@ -313,7 +312,7 @@ export class SystemUserService extends AbstractService {
     });
 
     if (isEmpty(deptInfo)) {
-      throw new ApiFailedException(ErrorEnum.DeptIdErrorCode);
+      throw new ApiFailedException(ErrorEnum.CODE_1104);
     }
   }
 

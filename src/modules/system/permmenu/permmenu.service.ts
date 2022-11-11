@@ -77,7 +77,7 @@ export class SystemPermMenuService extends AbstractService {
   ): Promise<void> {
     // 检查是否为保护的保护的菜单ID
     if (item.id <= this.configService.appConfig.protectSysPermMenuMaxId) {
-      throw new ApiFailedException(ErrorEnum.ForbiddenErrorCode);
+      throw new ApiFailedException(ErrorEnum.CODE_1112);
     }
 
     // 检查是否有含有子项
@@ -86,8 +86,9 @@ export class SystemPermMenuService extends AbstractService {
         parentId: item.id,
       },
     });
+
     if (count > 0) {
-      throw new ApiFailedException(ErrorEnum.DeletePermMenuErrorCode);
+      throw new ApiFailedException(ErrorEnum.CODE_1113);
     }
 
     // 判断用户是否在该权限菜单的管理范围内才可进行删除操作
@@ -99,7 +100,7 @@ export class SystemPermMenuService extends AbstractService {
     }
 
     if (!hasDeleteOperate) {
-      throw new ApiFailedException(ErrorEnum.NotPermMenuErrorCode);
+      throw new ApiFailedException(ErrorEnum.CODE_1114);
     }
 
     await this.entityManager.delete(SysPermMenuEntity, { id: item.id });
@@ -122,13 +123,13 @@ export class SystemPermMenuService extends AbstractService {
   ): Promise<void> {
     // 检查是否为保护的保护的菜单ID
     if (item.id <= this.configService.appConfig.protectSysPermMenuMaxId) {
-      throw new ApiFailedException(ErrorEnum.ForbiddenErrorCode);
+      throw new ApiFailedException(ErrorEnum.CODE_1112);
     }
 
     await this.checkUserPermissionExceed(uid, item.perms);
 
     if (item.id === item.parentId) {
-      throw new ApiFailedException(ErrorEnum.ParentPermMenuErrorCode);
+      throw new ApiFailedException(ErrorEnum.CODE_1115);
     }
 
     await this.checkPermMenuParentInvalid(item.parentId);
@@ -154,7 +155,7 @@ export class SystemPermMenuService extends AbstractService {
     allSubPermMenuIds = uniq(allSubPermMenuIds);
 
     if (allSubPermMenuIds.includes(item.parentId)) {
-      throw new ApiFailedException(ErrorEnum.SetParentIdErrorCode);
+      throw new ApiFailedException(ErrorEnum.CODE_1116);
     }
 
     await this.entityManager.update(
@@ -181,11 +182,11 @@ export class SystemPermMenuService extends AbstractService {
     });
 
     if (isEmpty(parent)) {
-      throw new ApiFailedException(ErrorEnum.ParentPermMenuIdErrorCode);
+      throw new ApiFailedException(ErrorEnum.CODE_1117);
     }
 
     if (parent.type === SysMenuTypeEnum.Permission) {
-      throw new ApiFailedException(ErrorEnum.SetParentTypeErrorCode);
+      throw new ApiFailedException(ErrorEnum.CODE_1118);
     }
   }
 
@@ -203,8 +204,9 @@ export class SystemPermMenuService extends AbstractService {
     );
 
     const exceed = permissions.some((e) => !cachePerms.includes(e));
+
     if (exceed) {
-      throw new ApiFailedException(ErrorEnum.NotPermMenuErrorCode);
+      throw new ApiFailedException(ErrorEnum.CODE_1114);
     }
   }
 
@@ -219,12 +221,13 @@ export class SystemPermMenuService extends AbstractService {
       },
     });
 
-    const roleIds = await this.getAvailableRoleIds(user.roleIds);
+    const roleIds = await this.getAllSubRoleIds(user.roleIds);
 
     const rolesInfo = await this.entityManager.find(SysRoleEntity, {
       select: ['permMenuIds'],
       where: {
         id: In(roleIds),
+        status: StatusTypeEnum.Enable,
       },
     });
 
@@ -238,28 +241,26 @@ export class SystemPermMenuService extends AbstractService {
   }
 
   /**
-   * 获取当前所有可用的角色信息（父角色会拥有所有的子级角色权限）
+   * 给定角色数组查找所有的子角色ID包括自身
    */
-  private async getAvailableRoleIds(roleIds: number[]): Promise<number[]> {
+  private async getAllSubRoleIds(roleIds: number[]): Promise<number[]> {
     let allSubRoles: number[] = [...roleIds];
     let lastQueryIds: number[] = [...roleIds];
 
     do {
-      if (lastQueryIds.length > 0) {
-        const roleids = await this.entityManager
-          .createQueryBuilder(SysRoleEntity, 'role')
-          .select(['role.id'])
-          .where('FIND_IN_SET(parent_id, :ids)', {
-            ids: lastQueryIds.join(','),
-          })
-          .andWhere('status != :status', { status: StatusTypeEnum.Disable })
-          .getMany();
+      const roleids = await this.entityManager
+        .createQueryBuilder(SysRoleEntity, 'role')
+        .select(['role.id'])
+        .where('FIND_IN_SET(parent_id, :ids)', {
+          ids: lastQueryIds.join(','),
+        })
+        .getMany();
 
-        lastQueryIds = roleids
-          .map((e) => e.id)
-          .filter((e) => !lastQueryIds.includes(e) && !allSubRoles.includes(e));
-        allSubRoles.push(...lastQueryIds);
-      }
+      lastQueryIds = roleids
+        .map((e) => e.id)
+        .filter((e) => !lastQueryIds.includes(e) && !allSubRoles.includes(e));
+
+      allSubRoles.push(...lastQueryIds);
     } while (lastQueryIds.length > 0);
 
     // 移除重复id

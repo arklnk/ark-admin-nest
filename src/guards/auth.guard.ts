@@ -77,7 +77,7 @@ export class Authguard implements CanActivate {
       .get(`${UserPermCachePrefix}${request.authUser.uid}`);
 
     if (isEmpty(permmenu)) {
-      throw new ApiFailedException(ErrorEnum.NotPermMenuErrorCode);
+      throw new ApiFailedException(ErrorEnum.CODE_1025);
     }
 
     const path = request.path;
@@ -86,7 +86,7 @@ export class Authguard implements CanActivate {
     const reg = new RegExp(`^${prefixUrl}`);
 
     if (!permmenuArr.includes(path.replace(reg, ''))) {
-      throw new ApiFailedException(ErrorEnum.NotPermMenuErrorCode);
+      throw new ApiFailedException(ErrorEnum.CODE_1025);
     }
 
     // can active
