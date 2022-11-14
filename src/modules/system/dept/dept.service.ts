@@ -11,6 +11,7 @@ import { ApiFailedException } from '/@/exceptions/api-failed.exception';
 import { ErrorEnum } from '/@/constants/errorx';
 import { SysUserEntity } from '/@/entities/sys-user.entity';
 import { TREE_ROOT_NODE_ID } from '/@/constants/core';
+import { StatusTypeEnum } from '/@/constants/type';
 
 @Injectable()
 export class SystemDeptService extends AbstractService {
@@ -106,13 +107,18 @@ export class SystemDeptService extends AbstractService {
     if (id === TREE_ROOT_NODE_ID) return;
 
     const parent = await this.entityManager.findOne(SysDeptEntity, {
-      select: ['id'],
+      select: ['id', 'status'],
       where: {
         id,
       },
     });
+
     if (!isEmpty(parent)) {
       throw new ApiFailedException(ErrorEnum.CODE_1121);
+    }
+
+    if (parent.status === StatusTypeEnum.Disable) {
+      throw new ApiFailedException(ErrorEnum.CODE_1126);
     }
   }
 }

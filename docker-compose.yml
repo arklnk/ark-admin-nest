@@ -1,26 +1,13 @@
 version: '3'
 
 services:
-  gateway:
-    image: nginx:1.21.5
-    container_name: gateway
-    ports:
-      - "8000:8000"
-    environment:
-      - TZ=Asia/Shanghai
-    volumes:
-      - ./deploy/gateway:/etc/nginx/conf.d
-      - ./data/gateway/log:/var/log/nginx
-    restart: always
-    privileged: true
-
   ark-admin-web:
     image: arklnk/ark-admin:web
     container_name: ark-admin-web
     volumes:
       - ./deploy/web:/etc/nginx/conf.d
     ports:
-      - "80:8080"
+      - "80:80"
     restart: always
 
   ark-admin-nest:

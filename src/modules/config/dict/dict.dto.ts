@@ -52,9 +52,8 @@ export class ConfigDictAddReqDto {
   })
   uniqueKey: string;
 
-  @StringField()
-  @ValidateIf((o) => o.parentId !== TREE_ROOT_NODE_ID)
-  value: string;
+  @StringField({ required: false })
+  value?: string;
 }
 
 export class ConfigDictDataPageReqDto extends PageOptionsDto {
