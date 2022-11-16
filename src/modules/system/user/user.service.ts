@@ -65,10 +65,14 @@ export class SystemUserService extends AbstractService {
         ORDER BY order_num DESC
         LIMIT ?, ?
       ) u
-      LEFT JOIN sys_profession p ON u.profession_id = p.id
-      LEFT JOIN sys_dept d ON u.dept_id = d.id
-      LEFT JOIN sys_job j ON u.job_id = j.id
-      LEFT JOIN sys_role r ON JSON_CONTAINS(u.role_ids, JSON_ARRAY(r.id))
+      LEFT JOIN ${this.getTableName(
+        SysProfessionEntity,
+      )} p ON u.profession_id = p.id
+      LEFT JOIN ${this.getTableName(SysDeptEntity)} d ON u.dept_id = d.id
+      LEFT JOIN ${this.getTableName(SysJobEntity)} j ON u.job_id = j.id
+      LEFT JOIN ${this.getTableName(
+        SysRoleEntity,
+      )} r ON JSON_CONTAINS(u.role_ids, JSON_ARRAY(r.id))
       GROUP BY u.id`,
       [
         this.configService.appConfig.rootUserId,
