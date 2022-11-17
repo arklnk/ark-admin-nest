@@ -1,8 +1,8 @@
 import { OmitType } from '@nestjs/swagger';
-import type { ISystemUserPageQueryRowItem } from './user.interface';
 import { PageOptionsDto } from '/@/common/dtos/page-options.dto';
 import { NumberField, StringField } from '/@/decorators/field.decorator';
 import { SysRoleEntity } from '/@/entities/sys-role.entity';
+import { ISysUserPagingQueryItem } from '/@/interfaces/repository';
 
 export class SysUserPageReqDto extends PageOptionsDto {
   @NumberField({
@@ -154,7 +154,7 @@ export class SysUserPageItemRespDto {
   job: IdNameInfoDto;
   roles: IdNameInfoDto[];
 
-  constructor(entity: ISystemUserPageQueryRowItem) {
+  constructor(entity: ISysUserPagingQueryItem) {
     this.id = entity.id;
     this.account = entity.account;
     this.email = entity.email;
