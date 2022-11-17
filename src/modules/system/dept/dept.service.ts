@@ -12,9 +12,18 @@ import { ErrorEnum } from '/@/constants/errorx';
 import { SysUserEntity } from '/@/entities/sys-user.entity';
 import { TREE_ROOT_NODE_ID } from '/@/constants/core';
 import { StatusTypeEnum } from '/@/constants/type';
+import { InjectRepository } from '@nestjs/typeorm';
+import { SysDeptRepository } from '/@/repositories/sys-dept.repository';
 
 @Injectable()
 export class SystemDeptService extends AbstractService {
+  constructor(
+    @InjectRepository(SysDeptEntity)
+    private readonly sysDeptRepo: SysDeptRepository,
+  ) {
+    super();
+  }
+
   async addDept(item: SysDeptAddReqDto): Promise<void> {
     await this.checkParentDeptInvalid(item.parentId);
 
@@ -73,21 +82,9 @@ export class SystemDeptService extends AbstractService {
     }
 
     // 查找未修改前部门ID所有的子项，防止将父级菜单修改成自己的子项导致数据丢失
-    let lastQueryIds: number[] = [item.id];
-    const allSubDeptIds: number[] = [];
-
-    do {
-      const pmIds = await this.entityManager
-        .createQueryBuilder(SysDeptEntity, 'dept')
-        .select(['dept.id'])
-        .where('FIND_IN_SET(parent_id, :ids)', {
-          ids: lastQueryIds.join(','),
-        })
-        .getMany();
-
-      lastQueryIds = pmIds.map((e) => e.id);
-      allSubDeptIds.push(...lastQueryIds);
-    } while (lastQueryIds.length > 0);
+    const allSubDeptIds: number[] = await this.sysDeptRepo.findAllSubIds(
+      item.id,
+    );
 
     if (allSubDeptIds.includes(item.parentId)) {
       throw new ApiFailedException(ErrorEnum.CODE_1125);

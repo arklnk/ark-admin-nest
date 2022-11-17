@@ -3,31 +3,31 @@ import { getDataSourceToken, getRepositoryToken } from '@nestjs/typeorm';
 import { uniq } from 'lodash';
 import { DataSource, Repository } from 'typeorm';
 import { TREE_ROOT_NODE_ID } from '../constants/core';
-import { SysDeptEntity } from '/@/entities/sys-dept.entity';
+import { SysPermMenuEntity } from '../entities/sys-perm-menu.entity';
 
-export const SysDeptRepositoryProvider: Provider = {
-  provide: getRepositoryToken(SysDeptEntity),
+export const SysPermMenuRepositoryProvider: Provider = {
+  provide: getRepositoryToken(SysPermMenuEntity),
   inject: [getDataSourceToken()],
   useFactory: (datasrouce: DataSource) => {
     return datasrouce
-      .getRepository(SysDeptEntity)
+      .getRepository(SysPermMenuEntity)
       .extend(extendsSysDeptRepository);
   },
 };
 
-export interface SysDeptRepository extends Repository<SysDeptEntity> {
+export interface SysPermMenuRepository extends Repository<SysPermMenuEntity> {
   /**
-   * 查找当前父级的所有子级部门编号
+   * 查找当前父级的所有子级编号
    */
   findAllSubIds(
-    this: Repository<SysDeptEntity>,
+    this: Repository<SysPermMenuEntity>,
     parentId: number,
     includeSelf?: boolean,
   ): Promise<number[]>;
 }
 
 export const extendsSysDeptRepository: Pick<
-  SysDeptRepository,
+  SysPermMenuRepository,
   'findAllSubIds'
 > = {
   async findAllSubIds(
@@ -35,15 +35,15 @@ export const extendsSysDeptRepository: Pick<
     includeSelf = false,
   ): Promise<number[]> {
     if (parentId === TREE_ROOT_NODE_ID) {
-      throw new Error('parent dept id cannot be set the root node');
+      throw new Error('parent perm menu id cannot be set the root node');
     }
 
     const allSubIds: number[] = [];
     let lastQueryIds: number[] = [parentId];
 
     do {
-      const queryIds = await this.createQueryBuilder('dept')
-        .select(['dept.id'])
+      const queryIds = await this.createQueryBuilder('pm')
+        .select(['pm.id'])
         .where('FIND_IN_SET(parent_id, :ids)', {
           ids: lastQueryIds.join(','),
         })
