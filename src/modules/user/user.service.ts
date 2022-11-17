@@ -44,6 +44,7 @@ import { SysDictionaryEntity } from '/@/entities/sys-dictionary.entity';
 import { CONFIG_SYS_CH_PWD, CONFIG_SYS_USERINFO } from '/@/constants/core';
 import { InjectRepository } from '@nestjs/typeorm';
 import { SysRoleRepository } from '/@/repositories/sys-role.repository';
+import { SysDeptEntity } from '/@/entities/sys-dept.entity';
 
 @Injectable()
 export class UserService extends AbstractService {
@@ -102,7 +103,7 @@ export class UserService extends AbstractService {
 
     // 查找用户账户
     const user = await this.entityManager.findOne(SysUserEntity, {
-      select: ['account', 'password', 'id', 'status'],
+      select: ['account', 'password', 'id', 'status', 'deptId'],
       where: { account: dto.account },
     });
 
@@ -119,6 +120,20 @@ export class UserService extends AbstractService {
     // 判断用户是否被禁用
     if (user.status === StatusTypeEnum.Disable) {
       throw new ApiFailedException(ErrorEnum.CODE_1024);
+    }
+
+    // 部门被禁用时无法使用
+    if (!this.generalService.isRootUser(user.id)) {
+      const deptInfo = await this.entityManager.findOne(SysDeptEntity, {
+        select: ['status'],
+        where: {
+          id: user.deptId,
+        },
+      });
+
+      if (isEmpty(deptInfo) || deptInfo.status === StatusTypeEnum.Disable) {
+        throw new ApiFailedException(ErrorEnum.CODE_1024);
+      }
     }
 
     // 生成JWT Token
