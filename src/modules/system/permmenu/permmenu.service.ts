@@ -1,5 +1,6 @@
 import { RedisService } from '@liaoliaots/nestjs-redis';
 import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
 import { isEmpty, omit, uniq } from 'lodash';
 import { In } from 'typeorm';
 import {
@@ -21,15 +22,21 @@ import { SysPermMenuEntity } from '/@/entities/sys-perm-menu.entity';
 import { SysRoleEntity } from '/@/entities/sys-role.entity';
 import { SysUserEntity } from '/@/entities/sys-user.entity';
 import { ApiFailedException } from '/@/exceptions/api-failed.exception';
+import { SysPermMenuRepository } from '/@/repositories/sys-perm-menu.repository';
+import { SysRoleRepository } from '/@/repositories/sys-role.repository';
 import { AppConfigService } from '/@/shared/services/app-config.service';
 import { AppGeneralService } from '/@/shared/services/app-general.service';
 
 @Injectable()
 export class SystemPermMenuService extends AbstractService {
   constructor(
-    private generalService: AppGeneralService,
-    private redisService: RedisService,
-    private configService: AppConfigService,
+    private readonly generalService: AppGeneralService,
+    private readonly redisService: RedisService,
+    private readonly configService: AppConfigService,
+    @InjectRepository(SysRoleEntity)
+    private readonly sysRoleRepo: SysRoleRepository,
+    @InjectRepository(SysPermMenuEntity)
+    private readonly sysPermMenuRepo: SysPermMenuRepository,
   ) {
     super();
   }
@@ -135,24 +142,8 @@ export class SystemPermMenuService extends AbstractService {
     await this.checkPermMenuParentInvalid(item.parentId);
 
     // 查找未修改前权限菜单ID所有的子项，防止将父级菜单修改成自己的子项导致数据丢失
-    let lastQueryIds: number[] = [item.id];
-    let allSubPermMenuIds: number[] = [];
-
-    do {
-      const pmIds = await this.entityManager
-        .createQueryBuilder(SysPermMenuEntity, 'perm_menu')
-        .select(['perm_menu.id'])
-        .where('FIND_IN_SET(parent_id, :ids)', {
-          ids: lastQueryIds.join(','),
-        })
-        .getMany();
-
-      lastQueryIds = pmIds.map((e) => e.id);
-      allSubPermMenuIds.push(...lastQueryIds);
-    } while (lastQueryIds.length > 0);
-
-    // 查重
-    allSubPermMenuIds = uniq(allSubPermMenuIds);
+    const allSubPermMenuIds: number[] =
+      await this.sysPermMenuRepo.findAllSubIds(item.id);
 
     if (allSubPermMenuIds.includes(item.parentId)) {
       throw new ApiFailedException(ErrorEnum.CODE_1116);
@@ -221,7 +212,7 @@ export class SystemPermMenuService extends AbstractService {
       },
     });
 
-    const roleIds = await this.getAllSubRoleIds(user.roleIds);
+    const roleIds = await this.sysRoleRepo.findAllSubIds(user.roleIds, true);
 
     const rolesInfo = await this.entityManager.find(SysRoleEntity, {
       select: ['permMenuIds'],
@@ -238,34 +229,5 @@ export class SystemPermMenuService extends AbstractService {
     userHasPermMenuIds = uniq(userHasPermMenuIds);
 
     return userHasPermMenuIds;
-  }
-
-  /**
-   * 给定角色数组查找所有的子角色ID包括自身
-   */
-  private async getAllSubRoleIds(roleIds: number[]): Promise<number[]> {
-    let allSubRoles: number[] = [...roleIds];
-    let lastQueryIds: number[] = [...roleIds];
-
-    do {
-      const roleids = await this.entityManager
-        .createQueryBuilder(SysRoleEntity, 'role')
-        .select(['role.id'])
-        .where('FIND_IN_SET(parent_id, :ids)', {
-          ids: lastQueryIds.join(','),
-        })
-        .getMany();
-
-      lastQueryIds = roleids
-        .map((e) => e.id)
-        .filter((e) => !lastQueryIds.includes(e) && !allSubRoles.includes(e));
-
-      allSubRoles.push(...lastQueryIds);
-    } while (lastQueryIds.length > 0);
-
-    // 移除重复id
-    allSubRoles = uniq(allSubRoles);
-
-    return allSubRoles;
   }
 }

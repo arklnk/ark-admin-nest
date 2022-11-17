@@ -42,14 +42,18 @@ import { AvatarGenerator } from '/@/providers/avatar-generator';
 import { AppGeneralService } from '/@/shared/services/app-general.service';
 import { SysDictionaryEntity } from '/@/entities/sys-dictionary.entity';
 import { CONFIG_SYS_CH_PWD, CONFIG_SYS_USERINFO } from '/@/constants/core';
+import { InjectRepository } from '@nestjs/typeorm';
+import { SysRoleRepository } from '/@/repositories/sys-role.repository';
 
 @Injectable()
 export class UserService extends AbstractService {
   constructor(
-    private jwtService: JwtService,
-    private redisService: RedisService,
-    private configService: AppConfigService,
-    private generalService: AppGeneralService,
+    private readonly jwtService: JwtService,
+    private readonly redisService: RedisService,
+    private readonly configService: AppConfigService,
+    private readonly generalService: AppGeneralService,
+    @InjectRepository(SysRoleEntity)
+    private readonly sysRoleRepo: SysRoleRepository,
   ) {
     super();
   }
@@ -169,7 +173,10 @@ export class UserService extends AbstractService {
       return result;
     }
 
-    const allSubRoles = await this.getAllSubRoleIds(user.roleIds);
+    const allSubRoles = await this.sysRoleRepo.findAllSubIds(
+      user.roleIds,
+      true,
+    );
 
     // 查找相关的角色信息
     const roles = await this.entityManager.find<SysRoleEntityTreeNode>(
@@ -230,35 +237,6 @@ export class UserService extends AbstractService {
       menus,
       uniq(perms).map((e) => `/${e.replace(/^\/+/, '')}`),
     );
-  }
-
-  /**
-   * 给定角色数组查找所有的子角色ID包括自身
-   */
-  private async getAllSubRoleIds(roleIds: number[]): Promise<number[]> {
-    let allSubRoles: number[] = [...roleIds];
-    let lastQueryIds: number[] = [...roleIds];
-
-    do {
-      const roleids = await this.entityManager
-        .createQueryBuilder(SysRoleEntity, 'role')
-        .select(['role.id'])
-        .where('FIND_IN_SET(parent_id, :ids)', {
-          ids: lastQueryIds.join(','),
-        })
-        .getMany();
-
-      lastQueryIds = roleids
-        .map((e) => e.id)
-        .filter((e) => !lastQueryIds.includes(e) && !allSubRoles.includes(e));
-
-      allSubRoles.push(...lastQueryIds);
-    } while (lastQueryIds.length > 0);
-
-    // 移除重复id
-    allSubRoles = uniq(allSubRoles);
-
-    return allSubRoles;
   }
 
   async userLogout(uid: number): Promise<void> {

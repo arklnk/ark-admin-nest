@@ -19,7 +19,7 @@ import { AppConfigService } from '/@/shared/services/app-config.service';
 
 @Injectable()
 export class ConfigDictService extends AbstractService {
-  constructor(private configService: AppConfigService) {
+  constructor(private readonly configService: AppConfigService) {
     super();
   }
 

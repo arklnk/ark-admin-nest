@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
 import { difference, isEmpty, omit, uniq, without } from 'lodash';
 import { In, Not } from 'typeorm';
 import {
@@ -20,20 +21,33 @@ import { SysProfessionEntity } from '/@/entities/sys-profession.entity';
 import { SysRoleEntity } from '/@/entities/sys-role.entity';
 import { SysUserEntity } from '/@/entities/sys-user.entity';
 import { ApiFailedException } from '/@/exceptions/api-failed.exception';
+import { SysDeptRepository } from '/@/repositories/sys-dept.repository';
 import { AppConfigService } from '/@/shared/services/app-config.service';
 import { AppGeneralService } from '/@/shared/services/app-general.service';
 
 @Injectable()
 export class SystemUserService extends AbstractService {
   constructor(
-    private generalService: AppGeneralService,
-    private configService: AppConfigService,
+    private readonly generalService: AppGeneralService,
+    private readonly configService: AppConfigService,
+    @InjectRepository(SysDeptEntity)
+    private readonly sysDeptRepo: SysDeptRepository,
   ) {
     super();
   }
 
   async getUserByPage(page: number, limit: number, queryDeptId: number) {
-    const deptIds = await this.getSubDeptAndSelfIds(queryDeptId);
+    // 需要查询的部门
+    let deptIds: number[] = [];
+    if (queryDeptId === TREE_ROOT_NODE_ID) {
+      const ret = await this.entityManager.find(SysDeptEntity, {
+        select: ['id'],
+      });
+
+      deptIds = ret.map((e) => e.id);
+    } else {
+      deptIds = await this.sysDeptRepo.findAllSubIds(queryDeptId, true);
+    }
 
     const rows = await this.nativeQuery<ISystemUserPageQueryRowItem[]>(
       `SELECT
@@ -65,10 +79,14 @@ export class SystemUserService extends AbstractService {
         ORDER BY order_num DESC
         LIMIT ?, ?
       ) u
-      LEFT JOIN sys_profession p ON u.profession_id = p.id
-      LEFT JOIN sys_dept d ON u.dept_id = d.id
-      LEFT JOIN sys_job j ON u.job_id = j.id
-      LEFT JOIN sys_role r ON JSON_CONTAINS(u.role_ids, JSON_ARRAY(r.id))
+      LEFT JOIN ${this.getTableName(
+        SysProfessionEntity,
+      )} p ON u.profession_id = p.id
+      LEFT JOIN ${this.getTableName(SysDeptEntity)} d ON u.dept_id = d.id
+      LEFT JOIN ${this.getTableName(SysJobEntity)} j ON u.job_id = j.id
+      LEFT JOIN ${this.getTableName(
+        SysRoleEntity,
+      )} r ON JSON_CONTAINS(u.role_ids, JSON_ARRAY(r.id))
       GROUP BY u.id`,
       [
         this.configService.appConfig.rootUserId,
@@ -314,32 +332,5 @@ export class SystemUserService extends AbstractService {
     if (isEmpty(deptInfo)) {
       throw new ApiFailedException(ErrorEnum.CODE_1104);
     }
-  }
-
-  /**
-   * 指定部门编号获取自身以及自身子部门的所有ID
-   */
-  private async getSubDeptAndSelfIds(id: number): Promise<number[]> {
-    const allDeptIds: number[] = [];
-    let lastQueryIds: number[] = [id];
-
-    do {
-      const deptIds = await this.entityManager
-        .createQueryBuilder(SysDeptEntity, 'dept')
-        .select(['dept.id'])
-        .where('FIND_IN_SET(parent_id, :ids)', {
-          ids: lastQueryIds.join(','),
-        })
-        .getMany();
-
-      lastQueryIds = deptIds.map((e) => e.id);
-      allDeptIds.push(...lastQueryIds);
-    } while (lastQueryIds.length > 0);
-
-    if (id !== TREE_ROOT_NODE_ID) {
-      allDeptIds.push(id);
-    }
-
-    return uniq(allDeptIds);
   }
 }
