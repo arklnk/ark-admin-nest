@@ -71,7 +71,7 @@ export class TypeORMLogger implements ITypeORMLogger {
 
     switch (level) {
       case 'log':
-        this.logger.verbose(message);
+        this.logger.debug(message);
         break;
       case 'info':
         this.logger.log(message);
