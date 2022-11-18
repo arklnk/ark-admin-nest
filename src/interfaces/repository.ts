@@ -1,4 +1,4 @@
-export interface ISystemUserPageQueryRowItem {
+export interface ISysUserPagingQueryItem {
   id: number;
   deptId: number;
   jobId: number;

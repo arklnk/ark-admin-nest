@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
 import { isEmpty, omit } from 'lodash';
 import {
   SysRoleAddReqDto,
@@ -12,11 +13,16 @@ import { StatusTypeEnum } from '/@/constants/type';
 import { SysRoleEntity } from '/@/entities/sys-role.entity';
 import { SysUserEntity } from '/@/entities/sys-user.entity';
 import { ApiFailedException } from '/@/exceptions/api-failed.exception';
+import { SysRoleRepository } from '/@/repositories/sys-role.repository';
 import { AppConfigService } from '/@/shared/services/app-config.service';
 
 @Injectable()
 export class SystemRoleService extends AbstractService {
-  constructor(private configService: AppConfigService) {
+  constructor(
+    private readonly configService: AppConfigService,
+    @InjectRepository(SysRoleEntity)
+    private readonly sysRoleRepo: SysRoleRepository,
+  ) {
     super();
   }
 
@@ -80,21 +86,9 @@ export class SystemRoleService extends AbstractService {
     }
 
     // 查找未修改前角色ID所有的子项，防止将父级菜单修改成自己的子项导致数据丢失
-    let lastQueryIds: number[] = [item.id];
-    const allSubRoleIds: number[] = [];
-
-    do {
-      const pmIds = await this.entityManager
-        .createQueryBuilder(SysRoleEntity, 'role')
-        .select(['role.id'])
-        .where('FIND_IN_SET(parent_id, :ids)', {
-          ids: lastQueryIds.join(','),
-        })
-        .getMany();
-
-      lastQueryIds = pmIds.map((e) => e.id);
-      allSubRoleIds.push(...lastQueryIds);
-    } while (lastQueryIds.length > 0);
+    const allSubRoleIds: number[] = await this.sysRoleRepo.findAllSubIds([
+      item.id,
+    ]);
 
     if (allSubRoleIds.includes(item.parentId)) {
       throw new ApiFailedException(ErrorEnum.CODE_1109);
