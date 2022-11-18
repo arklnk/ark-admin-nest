@@ -107,6 +107,13 @@ export class AppConfigService {
     };
   }
 
+  get loggerConfig() {
+    return {
+      level: this.getString('LOGGER_LEVEL'),
+      maxFiles: this.getNumber('LOGGER_MAX_FILES'),
+    };
+  }
+
   getString(key: string): string {
     const value = this.get(key);
 
