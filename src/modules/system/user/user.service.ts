@@ -9,7 +9,6 @@ import {
   SysUserRdpjInfoRespDto,
   SysUserUpdateReqDto,
 } from './user.dto';
-import type { ISystemUserPageQueryRowItem } from './user.interface';
 import { AbstractService } from '/@/common/abstract.service';
 import { encryptByMD5 } from '/@/common/utils/cipher';
 import { TREE_ROOT_NODE_ID } from '/@/constants/core';
@@ -21,6 +20,7 @@ import { SysProfessionEntity } from '/@/entities/sys-profession.entity';
 import { SysRoleEntity } from '/@/entities/sys-role.entity';
 import { SysUserEntity } from '/@/entities/sys-user.entity';
 import { ApiFailedException } from '/@/exceptions/api-failed.exception';
+import { ISysUserPagingQueryItem } from '/@/interfaces/repository';
 import { SysDeptRepository } from '/@/repositories/sys-dept.repository';
 import { AppConfigService } from '/@/shared/services/app-config.service';
 import { AppGeneralService } from '/@/shared/services/app-general.service';
@@ -49,7 +49,7 @@ export class SystemUserService extends AbstractService {
       deptIds = await this.sysDeptRepo.findAllSubIds(queryDeptId, true);
     }
 
-    const rows = await this.nativeQuery<ISystemUserPageQueryRowItem[]>(
+    const rows = await this.nativeQuery<ISysUserPagingQueryItem[]>(
       `SELECT
         u.id,
         u.dept_id AS deptId,
