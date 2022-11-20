@@ -119,7 +119,6 @@ export class AppLoggerService extends ConsoleLogger {
         warn: {
           appenders: ['warn'],
           level: 'all',
-          enableCallStack: true,
         },
         error: {
           appenders: ['error'],
@@ -131,7 +130,7 @@ export class AppLoggerService extends ConsoleLogger {
   }
 
   private createAppenders(level: LogLevel | 'info'): Appender {
-    const enableCallStack = level === 'warn' || level === 'error';
+    const enableCallStack = level === 'error';
 
     return {
       type: 'dateFile',
