@@ -9,7 +9,6 @@ import {
 import { AbstractService } from '/@/common/abstract.service';
 import { TREE_ROOT_NODE_ID } from '/@/constants/core';
 import { ErrorEnum } from '/@/constants/errorx';
-import { StatusTypeEnum } from '/@/constants/type';
 import { SysRoleEntity } from '/@/entities/sys-role.entity';
 import { SysUserEntity } from '/@/entities/sys-user.entity';
 import { ApiFailedException } from '/@/exceptions/api-failed.exception';
@@ -71,20 +70,6 @@ export class SystemRoleService extends AbstractService {
       throw new ApiFailedException(ErrorEnum.CODE_1107);
     }
 
-    // 如果需要禁用当前角色，则需要判断当前子角色下是否全被禁用
-    if (item.status === StatusTypeEnum.Disable) {
-      const countEnable = await this.entityManager.count(SysRoleEntity, {
-        where: {
-          parentId: item.id,
-          status: StatusTypeEnum.Enable,
-        },
-      });
-
-      if (countEnable) {
-        throw new ApiFailedException(ErrorEnum.CODE_1108);
-      }
-    }
-
     // 查找未修改前角色ID所有的子项，防止将父级菜单修改成自己的子项导致数据丢失
     const allSubRoleIds: number[] = await this.sysRoleRepo.findAllSubIds([
       item.id,
@@ -117,10 +102,6 @@ export class SystemRoleService extends AbstractService {
 
       if (isEmpty(parent)) {
         throw new ApiFailedException(ErrorEnum.CODE_1110);
-      }
-
-      if (parent.status === StatusTypeEnum.Disable) {
-        throw new ApiFailedException(ErrorEnum.CODE_1111);
       }
     }
   }

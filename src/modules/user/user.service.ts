@@ -188,19 +188,15 @@ export class UserService extends AbstractService {
       return result;
     }
 
-    const allSubRoles = await this.sysRoleRepo.findAllSubIds(
-      user.roleIds,
-      true,
-    );
+    const allSubRoles = await this.sysRoleRepo.findAllEnableIds(user.roleIds);
 
     // 查找相关的角色信息
     const roles = await this.entityManager.find<SysRoleEntityTreeNode>(
       SysRoleEntity,
       {
-        select: ['status', 'id', 'parentId', 'permMenuIds'],
+        select: ['permMenuIds'],
         where: {
           id: In(allSubRoles),
-          status: StatusTypeEnum.Enable,
         },
       },
     );
