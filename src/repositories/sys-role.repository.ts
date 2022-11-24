@@ -131,7 +131,6 @@ export const extendsSysRoleRepository: Pick<
         (parent ? parent.children : rolesTree).push(r);
       }
     }
-    console.log(rolesTree);
 
     // 获取顶层节点且不为ROOT节点的角色，需要往上查找判断给予条件的父级编号是否被禁用
     // 如果被禁用，那么依然是被禁用的
