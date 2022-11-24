@@ -89,7 +89,7 @@ export const extendsSysRoleRepository: Pick<
 
     do {
       const result = await this.createQueryBuilder('role')
-        .select(['role.id', 'role.parent_id', 'role.status'])
+        .select(['role.id', 'role.parentId', 'role.status'])
         .where('FIND_IN_SET(parent_id, :ids)', {
           ids: lastQueryIds.join(','),
         })
@@ -117,7 +117,7 @@ export const extendsSysRoleRepository: Pick<
 
     // 如果父级角色被禁用，那么相对应的子角色也会被全部禁用
     // 转换成树结构判断角色节点是否被禁用，被禁用则移除节点以及其子节点
-    let rolesTree: SysRoleEntityTreeNode[] = [];
+    const rolesTree: SysRoleEntityTreeNode[] = [];
     const nodeMap = new Map<number, SysRoleEntityTreeNode>();
 
     for (const r of allRoles) {
@@ -131,13 +131,17 @@ export const extendsSysRoleRepository: Pick<
         (parent ? parent.children : rolesTree).push(r);
       }
     }
+    console.log(rolesTree);
 
     // 获取顶层节点且不为ROOT节点的角色，需要往上查找判断给予条件的父级编号是否被禁用
-    // 如果被禁用，那么依然无法是被禁用的
+    // 如果被禁用，那么依然是被禁用的
+    const parentRecordMap = new Map<number, number>();
     lastQueryIds = rolesTree
       .filter((e) => e.parentId !== TREE_ROOT_NODE_ID)
-      .map((e) => e.parentId);
-    allRoles = [];
+      .map((e) => {
+        parentRecordMap.set(e.parentId, e.id);
+        return e.parentId;
+      });
 
     do {
       const result = await this.createQueryBuilder('role')
@@ -147,24 +151,27 @@ export const extendsSysRoleRepository: Pick<
         })
         .getMany();
 
-      lastQueryIds = result.map((e) => e.parentId);
-      allRoles.push(...result);
+      // lastQueryIds = result.map((e) => e.parentId);
+      lastQueryIds = [];
+
+      result.forEach((e) => {
+        const treeId = parentRecordMap.get(e.parentId);
+        parentRecordMap.delete(e.parentId);
+
+        if (e.status === StatusTypeEnum.Disable) {
+          const treeIndex = rolesTree.findIndex((e) => e.id === treeId);
+          rolesTree.splice(treeIndex + 1, 1);
+        }
+
+        if (
+          e.parentId !== TREE_ROOT_NODE_ID &&
+          e.status !== StatusTypeEnum.Disable
+        ) {
+          lastQueryIds.push(e.parentId);
+          parentRecordMap.set(e.parentId, treeId);
+        }
+      });
     } while (lastQueryIds.length > 0);
-
-    // 清空树重新遍历
-    rolesTree = [];
-
-    for (const r of allRoles) {
-      r.children = r.children || [];
-      nodeMap.set(r.id, r);
-    }
-
-    for (const r of allRoles) {
-      const parent = nodeMap.get(r.parentId);
-      if (r.status === StatusTypeEnum.Enable) {
-        (parent ? parent.children : rolesTree).push(r);
-      }
-    }
 
     // 最终结果遍历树获取所有可用的角色ID
     for (let i = 0; i < rolesTree.length; i++) {
