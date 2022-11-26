@@ -1,25 +1,52 @@
-import {
-  ConsoleLogger,
-  ConsoleLoggerOptions,
-  Injectable,
-  LogLevel,
-} from '@nestjs/common';
-import { AppConfigService } from './app-config.service';
-import { Appender, configure, getLogger, levels } from 'log4js';
+import type { Logger as WinstonLogger } from 'winston';
 
-/**
- * 将Nestjs内置日志等级进行等级排序, 并将内置log等级调整为info
- */
-const LogLevelOrder: LogLevel[] = ['verbose', 'debug', 'log', 'warn', 'error'];
+import { LoggerService, Injectable } from '@nestjs/common';
+import { AppConfigService } from './app-config.service';
+import { createLogger, transports, format, addColors } from 'winston';
+import { hostname } from 'os';
+import 'winston-daily-rotate-file';
+
+export enum LogLevel {
+  ERROR = 'error',
+  WARN = 'warn',
+  INFO = 'info',
+  DEBUG = 'debug',
+  VERBOSE = 'verbose',
+}
+
+const LogLevelOrder: LogLevel[] = [
+  LogLevel.ERROR,
+  LogLevel.WARN,
+  LogLevel.INFO,
+  LogLevel.DEBUG,
+  LogLevel.VERBOSE,
+];
+
+const LogLevelColor: string[] = ['red', 'yellow', 'green', 'gray', 'blue'];
+
+const commonMessageFormat = format((info) => {
+  if (!info.pid) {
+    info.pid = process.pid;
+  }
+
+  info.level = info.level.toUpperCase();
+
+  if (!info.hostname) {
+    info.hostname = hostname();
+  }
+
+  return info;
+});
+
+const commonMessagePrint = format.printf((info) => {
+  return `${info.hostname} ${info.timestamp} ${info.pid} ${info.level} ${info.context} ${info.message}`;
+});
 
 @Injectable()
-export class AppLoggerService extends ConsoleLogger {
-  constructor(
-    context: string,
-    options: ConsoleLoggerOptions,
-    private readonly configService: AppConfigService,
-  ) {
-    // 设置日志等级
+export class AppLoggerService implements LoggerService {
+  private winstonLogger: WinstonLogger;
+
+  constructor(private readonly configService: AppConfigService) {
     const level = configService.loggerConfig.level;
     const levelIndex = LogLevelOrder.findIndex((e) => e === level);
     if (levelIndex === -1) {
@@ -28,127 +55,82 @@ export class AppLoggerService extends ConsoleLogger {
       );
     }
 
-    super(context, {
-      ...options,
-      timestamp: true,
-      logLevels: LogLevelOrder.slice(levelIndex),
+    this.initWinston();
+  }
+
+  protected get level(): LogLevel {
+    return this.configService.loggerConfig.level as LogLevel;
+  }
+
+  protected initWinston(): void {
+    this.winstonLogger = createLogger({
+      levels: this.createNestLogLevels(),
+      transports: [
+        new transports.DailyRotateFile({
+          filename: 'logs/app.%DATE%.log',
+          datePattern: 'YYYY-MM-DD',
+          maxFiles: this.configService.loggerConfig.maxFiles,
+          level: this.level,
+          format: format.combine(commonMessagePrint),
+        }),
+        new transports.DailyRotateFile({
+          filename: 'logs/app-error.%DATE%.log',
+          datePattern: 'YYYY-MM-DD',
+          maxFiles: this.configService.loggerConfig.maxFiles,
+          level: LogLevel.ERROR,
+          format: format.combine(commonMessagePrint),
+        }),
+      ],
+      format: format.combine(
+        format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss,SSS' }),
+        commonMessageFormat(),
+      ),
     });
 
-    // 初始化log4js
-    this.initLog4js();
+    // 生产环境下会禁用控制台输出
+    if (!this.configService.isProduction) {
+      this.winstonLogger.add(
+        new transports.Console({
+          consoleWarnLevels: [LogLevel.WARN],
+          stderrLevels: [LogLevel.ERROR],
+          level: this.level,
+          format: format.combine(
+            format.colorize({ all: true }),
+            commonMessagePrint,
+          ),
+        }),
+      );
+    }
+  }
+
+  protected createNestLogLevels() {
+    const levels: { [key: string]: number } = {};
+    const colors: { [key: string]: string } = {};
+    LogLevelOrder.forEach((e, i) => {
+      levels[e] = i;
+      colors[e] = LogLevelColor[i];
+    });
+    addColors(colors);
+    return levels;
   }
 
   verbose(message: any, context?: string): void {
-    super.verbose.apply(this, [message, context]);
-
-    if (this.isLevelEnabled('verbose')) {
-      getLogger('verbose').log('verbose', message);
-    }
+    this.winstonLogger.log(LogLevel.VERBOSE, message, { context });
   }
 
   debug(message: any, context?: string): void {
-    super.debug.apply(this, [message, context]);
-
-    if (this.isLevelEnabled('debug')) {
-      getLogger('debug').log('debug', message);
-    }
+    this.winstonLogger.log(LogLevel.DEBUG, message, { context });
   }
 
   log(message: any, context?: string): void {
-    super.log.apply(this, [message, context]);
-
-    if (this.isLevelEnabled('log')) {
-      getLogger('info').log('info', message);
-    }
+    this.winstonLogger.log(LogLevel.INFO, message, { context });
   }
 
   warn(message: any, context?: string): void {
-    super.warn.apply(this, [message, context]);
-
-    if (this.isLevelEnabled('warn')) {
-      getLogger('warn').log('warn', message);
-    }
+    this.winstonLogger.log(LogLevel.WARN, message, { context });
   }
 
   error(message: any, stack?: string, context?: string): void {
-    super.error.apply(this, [message, stack, context]);
-
-    if (this.isLevelEnabled('error')) {
-      getLogger('error').log('error', message);
-    }
-  }
-
-  private initLog4js() {
-    // 增加日志等级
-    levels.addLevels({
-      VERBOSE: { value: 5000, colour: 'blue' },
-      DEBUG: { value: 10000, colour: 'cyan' },
-      INFO: { value: 20000, colour: 'green' },
-      WARN: { value: 30000, colour: 'yellow' },
-      ERROR: { value: 40000, colour: 'red' },
-    });
-
-    configure({
-      appenders: {
-        verbose: this.createAppenders('verbose'),
-        debug: this.createAppenders('debug'),
-        info: this.createAppenders('info'),
-        warn: this.createAppenders('warn'),
-        error: this.createAppenders('error'),
-        console: {
-          type: 'console',
-        },
-      },
-      categories: {
-        default: {
-          appenders: ['console'],
-          level: 'all',
-        },
-        verbose: {
-          appenders: ['verbose'],
-          level: 'all',
-        },
-        debug: {
-          appenders: ['debug'],
-          level: 'all',
-        },
-        info: {
-          appenders: ['info'],
-          level: 'all',
-        },
-        warn: {
-          appenders: ['warn'],
-          level: 'all',
-        },
-        error: {
-          appenders: ['error'],
-          level: 'all',
-          enableCallStack: true,
-        },
-      },
-    });
-  }
-
-  private createAppenders(level: LogLevel | 'info'): Appender {
-    const enableCallStack = level === 'error';
-
-    return {
-      type: 'dateFile',
-      filename: `logs/${level}`,
-      pattern: 'yyyy-MM-dd.log',
-      alwaysIncludePattern: true,
-      keepFileExt: true,
-      numBackups: this.configService.loggerConfig.maxFiles,
-      layout: {
-        type: 'pattern',
-        pattern:
-          '[%h] %z %d{yyyy-MM-dd hh:mm:ss.SSS} %p %n%m' +
-          `${enableCallStack ? ' %n%s' : ''}` +
-          ' %n%x{divider}',
-        tokens: {
-          divider: '-'.repeat(150),
-        },
-      },
-    };
+    this.winstonLogger.log(LogLevel.ERROR, message, { context, stack });
   }
 }
