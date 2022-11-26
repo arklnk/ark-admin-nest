@@ -13,11 +13,7 @@ import { AbstractService } from '/@/common/abstract.service';
 import { UserPermCachePrefix } from '/@/constants/cache';
 import { TREE_ROOT_NODE_ID } from '/@/constants/core';
 import { ErrorEnum } from '/@/constants/errorx';
-import {
-  BoolTypeEnum,
-  StatusTypeEnum,
-  SysMenuTypeEnum,
-} from '/@/constants/type';
+import { BoolTypeEnum, SysMenuTypeEnum } from '/@/constants/type';
 import { SysPermMenuEntity } from '/@/entities/sys-perm-menu.entity';
 import { SysRoleEntity } from '/@/entities/sys-role.entity';
 import { SysUserEntity } from '/@/entities/sys-user.entity';
@@ -212,13 +208,12 @@ export class SystemPermMenuService extends AbstractService {
       },
     });
 
-    const roleIds = await this.sysRoleRepo.findAllSubIds(user.roleIds, true);
+    const roleIds = await this.sysRoleRepo.findAllEnableIds(user.roleIds);
 
     const rolesInfo = await this.entityManager.find(SysRoleEntity, {
       select: ['permMenuIds'],
       where: {
         id: In(roleIds),
-        status: StatusTypeEnum.Enable,
       },
     });
 

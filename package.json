@@ -36,13 +36,14 @@
     "dayjs": "^1.11.6",
     "ioredis": "^5.2.4",
     "lodash": "^4.17.21",
-    "log4js": "^6.7.0",
     "mysql2": "^2.3.3",
     "nanoid": "^3.3.4",
     "reflect-metadata": "^0.1.13",
     "rxjs": "^7.5.7",
     "svg-captcha": "^1.4.0",
-    "typeorm": "^0.3.10"
+    "typeorm": "^0.3.10",
+    "winston": "^3.8.2",
+    "winston-daily-rotate-file": "^4.7.1"
   },
   "devDependencies": {
     "@nestjs/cli": "^9.1.5",
