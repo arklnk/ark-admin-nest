@@ -3,7 +3,6 @@ import type { Logger as WinstonLogger } from 'winston';
 import { LoggerService, Injectable } from '@nestjs/common';
 import { AppConfigService } from './app-config.service';
 import { createLogger, transports, format, addColors } from 'winston';
-import { hostname } from 'os';
 import 'winston-daily-rotate-file';
 
 export enum LogLevel {
@@ -22,7 +21,7 @@ const LogLevelOrder: LogLevel[] = [
   LogLevel.VERBOSE,
 ];
 
-const LogLevelColor: string[] = ['red', 'yellow', 'green', 'gray', 'blue'];
+const LogLevelColor: string[] = ['red', 'yellow', 'green', 'cyan', 'gray'];
 
 const commonMessageFormat = format((info) => {
   if (!info.pid) {
@@ -31,15 +30,17 @@ const commonMessageFormat = format((info) => {
 
   info.level = info.level.toUpperCase();
 
-  if (!info.hostname) {
-    info.hostname = hostname();
-  }
-
   return info;
 });
 
 const commonMessagePrint = format.printf((info) => {
-  return `${info.hostname} ${info.timestamp} ${info.pid} ${info.level} ${info.context} ${info.message}`;
+  let output = `${info.timestamp} ${info.pid} ${info.level} ${info.context} `;
+  if (info.stack) {
+    output += `${info.stack}`;
+  } else {
+    output += info.message;
+  }
+  return output;
 });
 
 @Injectable()
@@ -72,6 +73,7 @@ export class AppLoggerService implements LoggerService {
           maxFiles: this.configService.loggerConfig.maxFiles,
           level: this.level,
           format: format.combine(commonMessagePrint),
+          auditFile: 'logs/.audit/app.json',
         }),
         new transports.DailyRotateFile({
           filename: 'logs/app-error.%DATE%.log',
@@ -79,9 +81,11 @@ export class AppLoggerService implements LoggerService {
           maxFiles: this.configService.loggerConfig.maxFiles,
           level: LogLevel.ERROR,
           format: format.combine(commonMessagePrint),
+          auditFile: 'logs/.audit/app-error.json',
         }),
       ],
       format: format.combine(
+        format.errors({ stack: true }),
         format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss,SSS' }),
         commonMessageFormat(),
       ),
@@ -91,12 +95,10 @@ export class AppLoggerService implements LoggerService {
     if (!this.configService.isProduction) {
       this.winstonLogger.add(
         new transports.Console({
-          consoleWarnLevels: [LogLevel.WARN],
-          stderrLevels: [LogLevel.ERROR],
           level: this.level,
           format: format.combine(
-            format.colorize({ all: true }),
             commonMessagePrint,
+            format.colorize({ all: true }),
           ),
         }),
       );
@@ -131,6 +133,10 @@ export class AppLoggerService implements LoggerService {
   }
 
   error(message: any, stack?: string, context?: string): void {
-    this.winstonLogger.log(LogLevel.ERROR, message, { context, stack });
+    const hasStack = !!context;
+    this.winstonLogger.log(LogLevel.ERROR, {
+      context: hasStack ? context : stack,
+      message: hasStack ? new Error(message) : message,
+    });
   }
 }
