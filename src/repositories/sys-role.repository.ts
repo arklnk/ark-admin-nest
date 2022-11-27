@@ -144,7 +144,7 @@ export const extendsSysRoleRepository: Pick<
 
     do {
       const result = await this.createQueryBuilder('role')
-        .select(['role.id', 'role.parent_id', 'role.status'])
+        .select(['role.id', 'role.parentId', 'role.status'])
         .where('FIND_IN_SET(id, :ids)', {
           ids: lastQueryIds.join(','),
         })
