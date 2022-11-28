@@ -3,6 +3,7 @@ import { getDataSourceToken, getRepositoryToken } from '@nestjs/typeorm';
 import { uniq } from 'lodash';
 import { DataSource, Repository } from 'typeorm';
 import { TREE_ROOT_NODE_ID } from '../constants/core';
+import { StatusTypeEnum } from '../constants/type';
 import { SysDeptEntity } from '/@/entities/sys-dept.entity';
 
 export const SysDeptRepositoryProvider: Provider = {
@@ -24,11 +25,19 @@ export interface SysDeptRepository extends Repository<SysDeptEntity> {
     parentId: number,
     includeSelf?: boolean,
   ): Promise<number[]>;
+
+  /**
+   * 查找部门是否可用
+   */
+  findDeptEnableByid(
+    this: Repository<SysDeptEntity>,
+    deptId: number,
+  ): Promise<boolean>;
 }
 
 export const extendsSysDeptRepository: Pick<
   SysDeptRepository,
-  'findAllSubIds'
+  'findAllSubIds' | 'findDeptEnableByid'
 > = {
   async findAllSubIds(
     parentId: number,
@@ -58,5 +67,37 @@ export const extendsSysDeptRepository: Pick<
     }
 
     return uniq(allSubIds);
+  },
+
+  async findDeptEnableByid(deptId: number): Promise<boolean> {
+    const deptInfo = await this.findOne({
+      select: ['id', 'parentId', 'status'],
+      where: {
+        id: deptId,
+      },
+    });
+
+    if (deptInfo.parentId === TREE_ROOT_NODE_ID) {
+      return deptInfo.status === StatusTypeEnum.Enable;
+    }
+
+    let parentId = deptInfo.parentId;
+
+    while (parentId !== TREE_ROOT_NODE_ID) {
+      const ret = await this.findOne({
+        select: ['id', 'parentId', 'status'],
+        where: {
+          id: deptInfo.parentId,
+        },
+      });
+
+      if (ret.status === StatusTypeEnum.Disable) {
+        return false;
+      }
+
+      parentId = ret.parentId;
+    }
+
+    return true;
   },
 };

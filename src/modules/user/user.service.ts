@@ -45,6 +45,7 @@ import { CONFIG_SYS_CH_PWD, CONFIG_SYS_USERINFO } from '/@/constants/core';
 import { InjectRepository } from '@nestjs/typeorm';
 import { SysRoleRepository } from '/@/repositories/sys-role.repository';
 import { SysDeptEntity } from '/@/entities/sys-dept.entity';
+import { SysDeptRepository } from '/@/repositories/sys-dept.repository';
 
 @Injectable()
 export class UserService extends AbstractService {
@@ -55,6 +56,8 @@ export class UserService extends AbstractService {
     private readonly generalService: AppGeneralService,
     @InjectRepository(SysRoleEntity)
     private readonly sysRoleRepo: SysRoleRepository,
+    @InjectRepository(SysDeptEntity)
+    private readonly sysDeptRepo: SysDeptRepository,
   ) {
     super();
   }
@@ -117,21 +120,17 @@ export class UserService extends AbstractService {
       throw new ApiFailedException(ErrorEnum.CODE_1022);
     }
 
-    // 判断用户是否被禁用
-    if (user.status === StatusTypeEnum.Disable) {
-      throw new ApiFailedException(ErrorEnum.CODE_1024);
-    }
-
-    // 部门被禁用时无法使用
+    // 非超管判断用户禁用情况
     if (!this.generalService.isRootUser(user.id)) {
-      const deptInfo = await this.entityManager.findOne(SysDeptEntity, {
-        select: ['status'],
-        where: {
-          id: user.deptId,
-        },
-      });
+      // 判断用户是否被禁用
+      if (user.status === StatusTypeEnum.Disable) {
+        throw new ApiFailedException(ErrorEnum.CODE_1024);
+      }
 
-      if (isEmpty(deptInfo) || deptInfo.status === StatusTypeEnum.Disable) {
+      // 部门被禁用时无法使用
+      const deptEnable = await this.sysDeptRepo.findDeptEnableByid(user.deptId);
+
+      if (!deptEnable) {
         throw new ApiFailedException(ErrorEnum.CODE_1024);
       }
     }
