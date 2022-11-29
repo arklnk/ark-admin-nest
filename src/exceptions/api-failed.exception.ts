@@ -12,12 +12,9 @@ export class ApiFailedException extends HttpException {
    */
   constructor(err: ErrorEnum) {
     super(`${err}`, HttpStatus.OK);
-    // CODE_500 str parse to 500 number
-    this.errorCode = Number(
-      Object.entries(ErrorEnum)
-        .find(([_, val]) => val === err)[0]
-        .replace('CODE_', ''),
-    );
+    const [code, msg] = err.split(':');
+    super(msg, HttpStatus.OK);
+    this.errorCode = Number(code);
   }
 
   getErrorCode(): number {
