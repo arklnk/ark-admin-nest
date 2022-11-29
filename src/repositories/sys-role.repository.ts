@@ -1,49 +1,24 @@
-import { Provider } from '@nestjs/common';
-import { getDataSourceToken, getRepositoryToken } from '@nestjs/typeorm';
+import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
 import { isEmpty, uniq } from 'lodash';
-import { DataSource, In, Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
+import { AbstractRepository } from '../common/abstract.repository';
 import { TREE_ROOT_NODE_ID } from '../constants/core';
 import { StatusTypeEnum } from '../constants/type';
 import { SysRoleEntity } from '../entities/sys-role.entity';
-
-export const SysRoleRepositoryProvider: Provider = {
-  provide: getRepositoryToken(SysRoleEntity),
-  inject: [getDataSourceToken()],
-  useFactory(datasource: DataSource) {
-    return datasource
-      .getRepository(SysRoleEntity)
-      .extend(extendsSysRoleRepository);
-  },
-};
-
-export interface SysRoleRepository extends Repository<SysRoleEntity> {
-  /**
-   * 查找所有父级的所有子级角色编号
-   */
-  findAllSubIds(
-    this: Repository<SysRoleEntity>,
-    parentIds: number[],
-    includeSelf?: boolean,
-  ): Promise<number[]>;
-
-  /**
-   * 查找给定ID下所有可用角色编号
-   * 查找所有的关联子角色ID -> 获取parentIds角色信息 -> 合并角色信息形成树 -> 获取树顶级节点不为Root -> 往上查找关联的父级节点 -> 最终合并树结构遍历获取可用ID
-   */
-  findAllEnableIds(
-    this: Repository<SysRoleEntity>,
-    parentIds: number[],
-  ): Promise<number[]>;
-}
 
 export type SysRoleEntityTreeNode = SysRoleEntity & {
   children?: SysRoleEntity[];
 };
 
-export const extendsSysRoleRepository: Pick<
-  SysRoleRepository,
-  'findAllSubIds' | 'findAllEnableIds'
-> = {
+@Injectable()
+export class SysRoleRepository extends AbstractRepository<SysRoleEntity> {
+  constructor(
+    @InjectRepository(SysRoleEntity) repository: Repository<SysRoleEntity>,
+  ) {
+    super(repository);
+  }
+
   async findAllSubIds(
     parentIds: number[],
     includeSelf = false,
@@ -56,7 +31,8 @@ export const extendsSysRoleRepository: Pick<
     let lastQueryIds: number[] = [...parentIds];
 
     do {
-      const queryIds = await this.createQueryBuilder('role')
+      const queryIds = await this.repository
+        .createQueryBuilder('role')
         .select(['role.id'])
         .where('FIND_IN_SET(parent_id, :ids)', {
           ids: lastQueryIds.join(','),
@@ -75,7 +51,7 @@ export const extendsSysRoleRepository: Pick<
     }
 
     return uniq(allSubRoles);
-  },
+  }
 
   async findAllEnableIds(parentIds: number[]): Promise<number[]> {
     if (parentIds.includes(TREE_ROOT_NODE_ID)) {
@@ -88,7 +64,8 @@ export const extendsSysRoleRepository: Pick<
     let lastQueryIds: number[] = [...parentIds];
 
     do {
-      const result = await this.createQueryBuilder('role')
+      const result = await this.repository
+        .createQueryBuilder('role')
         .select(['role.id', 'role.parentId', 'role.status'])
         .where('FIND_IN_SET(parent_id, :ids)', {
           ids: lastQueryIds.join(','),
@@ -105,7 +82,7 @@ export const extendsSysRoleRepository: Pick<
     } while (lastQueryIds.length > 0);
 
     // 查询的条件的角色信息
-    const parentRoles = await this.find({
+    const parentRoles = await this.repository.find({
       select: ['id', 'parentId', 'status'],
       where: {
         id: In(parentIds),
@@ -143,8 +120,9 @@ export const extendsSysRoleRepository: Pick<
       });
 
     do {
-      const result = await this.createQueryBuilder('role')
-        .select(['role.id', 'role.parent_id', 'role.status'])
+      const result = await this.repository
+        .createQueryBuilder('role')
+        .select(['role.id', 'role.parentId', 'role.status'])
         .where('FIND_IN_SET(id, :ids)', {
           ids: lastQueryIds.join(','),
         })
@@ -181,5 +159,5 @@ export const extendsSysRoleRepository: Pick<
     }
 
     return uniq(allIds);
-  },
-};
+  }
+}

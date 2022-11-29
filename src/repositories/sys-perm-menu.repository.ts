@@ -1,35 +1,20 @@
-import { Provider } from '@nestjs/common';
-import { getDataSourceToken, getRepositoryToken } from '@nestjs/typeorm';
+import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
 import { uniq } from 'lodash';
-import { DataSource, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
+import { AbstractRepository } from '../common/abstract.repository';
 import { TREE_ROOT_NODE_ID } from '../constants/core';
 import { SysPermMenuEntity } from '../entities/sys-perm-menu.entity';
 
-export const SysPermMenuRepositoryProvider: Provider = {
-  provide: getRepositoryToken(SysPermMenuEntity),
-  inject: [getDataSourceToken()],
-  useFactory: (datasrouce: DataSource) => {
-    return datasrouce
-      .getRepository(SysPermMenuEntity)
-      .extend(extendsSysDeptRepository);
-  },
-};
+@Injectable()
+export class SysPermMenuRepository extends AbstractRepository<SysPermMenuEntity> {
+  constructor(
+    @InjectRepository(SysPermMenuEntity)
+    repository: Repository<SysPermMenuEntity>,
+  ) {
+    super(repository);
+  }
 
-export interface SysPermMenuRepository extends Repository<SysPermMenuEntity> {
-  /**
-   * 查找当前父级的所有子级编号
-   */
-  findAllSubIds(
-    this: Repository<SysPermMenuEntity>,
-    parentId: number,
-    includeSelf?: boolean,
-  ): Promise<number[]>;
-}
-
-export const extendsSysDeptRepository: Pick<
-  SysPermMenuRepository,
-  'findAllSubIds'
-> = {
   async findAllSubIds(
     parentId: number,
     includeSelf = false,
@@ -42,7 +27,8 @@ export const extendsSysDeptRepository: Pick<
     let lastQueryIds: number[] = [parentId];
 
     do {
-      const queryIds = await this.createQueryBuilder('pm')
+      const queryIds = await this.repository
+        .createQueryBuilder('pm')
         .select(['pm.id'])
         .where('FIND_IN_SET(parent_id, :ids)', {
           ids: lastQueryIds.join(','),
@@ -58,5 +44,5 @@ export const extendsSysDeptRepository: Pick<
     }
 
     return uniq(allSubIds);
-  },
-};
+  }
+}

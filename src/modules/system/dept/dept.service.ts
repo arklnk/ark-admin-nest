@@ -11,16 +11,11 @@ import { ApiFailedException } from '/@/exceptions/api-failed.exception';
 import { ErrorEnum } from '/@/constants/errorx';
 import { SysUserEntity } from '/@/entities/sys-user.entity';
 import { TREE_ROOT_NODE_ID } from '/@/constants/core';
-import { StatusTypeEnum } from '/@/constants/type';
-import { InjectRepository } from '@nestjs/typeorm';
 import { SysDeptRepository } from '/@/repositories/sys-dept.repository';
 
 @Injectable()
 export class SystemDeptService extends AbstractService {
-  constructor(
-    @InjectRepository(SysDeptEntity)
-    private readonly sysDeptRepo: SysDeptRepository,
-  ) {
+  constructor(private readonly sysDeptRepo: SysDeptRepository) {
     super();
   }
 
@@ -112,10 +107,6 @@ export class SystemDeptService extends AbstractService {
 
     if (!isEmpty(parent)) {
       throw new ApiFailedException(ErrorEnum.CODE_1121);
-    }
-
-    if (parent.status === StatusTypeEnum.Disable) {
-      throw new ApiFailedException(ErrorEnum.CODE_1126);
     }
   }
 }

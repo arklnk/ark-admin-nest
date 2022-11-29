@@ -34,7 +34,7 @@ const commonMessageFormat = format((info) => {
 });
 
 const commonMessagePrint = format.printf((info) => {
-  let output = `${info.timestamp} ${info.pid} ${info.level} ${info.context} `;
+  let output = `${info.timestamp} ${info.level} ${info.pid} ${info.context} `;
   if (info.stack) {
     output += `${info.stack}`;
   } else {
