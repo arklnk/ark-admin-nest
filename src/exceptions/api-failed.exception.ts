@@ -11,7 +11,6 @@ export class ApiFailedException extends HttpException {
    * 业务错误，请求结果仍为200
    */
   constructor(err: ErrorEnum) {
-    super(`${err}`, HttpStatus.OK);
     const [code, msg] = err.split(':');
     super(msg, HttpStatus.OK);
     this.errorCode = Number(code);
