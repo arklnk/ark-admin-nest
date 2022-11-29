@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
 import { difference, isEmpty, omit, uniq, without } from 'lodash';
 import { In, Not } from 'typeorm';
 import {
@@ -30,7 +29,6 @@ export class SystemUserService extends AbstractService {
   constructor(
     private readonly generalService: AppGeneralService,
     private readonly configService: AppConfigService,
-    @InjectRepository(SysDeptEntity)
     private readonly sysDeptRepo: SysDeptRepository,
   ) {
     super();

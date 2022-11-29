@@ -11,15 +11,11 @@ import { ApiFailedException } from '/@/exceptions/api-failed.exception';
 import { ErrorEnum } from '/@/constants/errorx';
 import { SysUserEntity } from '/@/entities/sys-user.entity';
 import { TREE_ROOT_NODE_ID } from '/@/constants/core';
-import { InjectRepository } from '@nestjs/typeorm';
 import { SysDeptRepository } from '/@/repositories/sys-dept.repository';
 
 @Injectable()
 export class SystemDeptService extends AbstractService {
-  constructor(
-    @InjectRepository(SysDeptEntity)
-    private readonly sysDeptRepo: SysDeptRepository,
-  ) {
+  constructor(private readonly sysDeptRepo: SysDeptRepository) {
     super();
   }
 

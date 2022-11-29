@@ -1,6 +1,5 @@
 import { RedisService } from '@liaoliaots/nestjs-redis';
 import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
 import { isEmpty, omit, uniq } from 'lodash';
 import { In } from 'typeorm';
 import {
@@ -29,9 +28,7 @@ export class SystemPermMenuService extends AbstractService {
     private readonly generalService: AppGeneralService,
     private readonly redisService: RedisService,
     private readonly configService: AppConfigService,
-    @InjectRepository(SysRoleEntity)
     private readonly sysRoleRepo: SysRoleRepository,
-    @InjectRepository(SysPermMenuEntity)
     private readonly sysPermMenuRepo: SysPermMenuRepository,
   ) {
     super();

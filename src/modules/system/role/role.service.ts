@@ -1,5 +1,4 @@
 import { Injectable } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
 import { isEmpty, omit } from 'lodash';
 import {
   SysRoleAddReqDto,
@@ -19,7 +18,6 @@ import { AppConfigService } from '/@/shared/services/app-config.service';
 export class SystemRoleService extends AbstractService {
   constructor(
     private readonly configService: AppConfigService,
-    @InjectRepository(SysRoleEntity)
     private readonly sysRoleRepo: SysRoleRepository,
   ) {
     super();

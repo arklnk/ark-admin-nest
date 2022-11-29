@@ -42,9 +42,7 @@ import { AvatarGenerator } from '/@/providers/avatar-generator';
 import { AppGeneralService } from '/@/shared/services/app-general.service';
 import { SysDictionaryEntity } from '/@/entities/sys-dictionary.entity';
 import { CONFIG_SYS_CH_PWD, CONFIG_SYS_USERINFO } from '/@/constants/core';
-import { InjectRepository } from '@nestjs/typeorm';
 import { SysRoleRepository } from '/@/repositories/sys-role.repository';
-import { SysDeptEntity } from '/@/entities/sys-dept.entity';
 import { SysDeptRepository } from '/@/repositories/sys-dept.repository';
 
 @Injectable()
@@ -54,9 +52,7 @@ export class UserService extends AbstractService {
     private readonly redisService: RedisService,
     private readonly configService: AppConfigService,
     private readonly generalService: AppGeneralService,
-    @InjectRepository(SysRoleEntity)
     private readonly sysRoleRepo: SysRoleRepository,
-    @InjectRepository(SysDeptEntity)
     private readonly sysDeptRepo: SysDeptRepository,
   ) {
     super();

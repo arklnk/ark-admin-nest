@@ -1,44 +1,20 @@
-import { Provider } from '@nestjs/common';
-import { getDataSourceToken, getRepositoryToken } from '@nestjs/typeorm';
+import { Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
 import { uniq } from 'lodash';
-import { DataSource, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
+import { AbstractRepository } from '../common/abstract.repository';
 import { TREE_ROOT_NODE_ID } from '../constants/core';
 import { StatusTypeEnum } from '../constants/type';
 import { SysDeptEntity } from '/@/entities/sys-dept.entity';
 
-export const SysDeptRepositoryProvider: Provider = {
-  provide: getRepositoryToken(SysDeptEntity),
-  inject: [getDataSourceToken()],
-  useFactory: (datasrouce: DataSource) => {
-    return datasrouce
-      .getRepository(SysDeptEntity)
-      .extend(extendsSysDeptRepository);
-  },
-};
+@Injectable()
+export class SysDeptRepository extends AbstractRepository<SysDeptEntity> {
+  constructor(
+    @InjectRepository(SysDeptEntity) repository: Repository<SysDeptEntity>,
+  ) {
+    super(repository);
+  }
 
-export interface SysDeptRepository extends Repository<SysDeptEntity> {
-  /**
-   * 查找当前父级的所有子级部门编号
-   */
-  findAllSubIds(
-    this: Repository<SysDeptEntity>,
-    parentId: number,
-    includeSelf?: boolean,
-  ): Promise<number[]>;
-
-  /**
-   * 查找部门是否可用
-   */
-  findDeptEnableByid(
-    this: Repository<SysDeptEntity>,
-    deptId: number,
-  ): Promise<boolean>;
-}
-
-export const extendsSysDeptRepository: Pick<
-  SysDeptRepository,
-  'findAllSubIds' | 'findDeptEnableByid'
-> = {
   async findAllSubIds(
     parentId: number,
     includeSelf = false,
@@ -51,7 +27,8 @@ export const extendsSysDeptRepository: Pick<
     let lastQueryIds: number[] = [parentId];
 
     do {
-      const queryIds = await this.createQueryBuilder('dept')
+      const queryIds = await this.repository
+        .createQueryBuilder('dept')
         .select(['dept.id'])
         .where('FIND_IN_SET(parent_id, :ids)', {
           ids: lastQueryIds.join(','),
@@ -67,10 +44,10 @@ export const extendsSysDeptRepository: Pick<
     }
 
     return uniq(allSubIds);
-  },
+  }
 
   async findDeptEnableByid(deptId: number): Promise<boolean> {
-    const deptInfo = await this.findOne({
+    const deptInfo = await this.repository.findOne({
       select: ['id', 'parentId', 'status'],
       where: {
         id: deptId,
@@ -84,7 +61,7 @@ export const extendsSysDeptRepository: Pick<
     let parentId = deptInfo.parentId;
 
     while (parentId !== TREE_ROOT_NODE_ID) {
-      const ret = await this.findOne({
+      const ret = await this.repository.findOne({
         select: ['id', 'parentId', 'status'],
         where: {
           id: deptInfo.parentId,
@@ -99,5 +76,5 @@ export const extendsSysDeptRepository: Pick<
     }
 
     return true;
-  },
-};
+  }
+}
