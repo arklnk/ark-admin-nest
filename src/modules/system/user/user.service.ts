@@ -1,8 +1,7 @@
 import { Injectable } from '@nestjs/common';
-import { difference, isEmpty, omit, uniq, without } from 'lodash';
+import { isEmpty, omit, uniq } from 'lodash';
 import { In, Not } from 'typeorm';
 import {
-  RoleInfoDto,
   SysUserAddReqDto,
   SysUserPageItemRespDto,
   SysUserRdpjInfoRespDto,
@@ -12,7 +11,6 @@ import { AbstractService } from '/@/common/abstract.service';
 import { encryptByMD5 } from '/@/common/utils/cipher';
 import { TREE_ROOT_NODE_ID } from '/@/constants/core';
 import { ErrorEnum } from '/@/constants/errorx';
-import { BoolTypeEnum } from '/@/constants/type';
 import { SysDeptEntity } from '/@/entities/sys-dept.entity';
 import { SysJobEntity } from '/@/entities/sys-job.entity';
 import { SysProfessionEntity } from '/@/entities/sys-profession.entity';
@@ -134,7 +132,7 @@ export class SystemUserService extends AbstractService {
     await this.entityManager.delete(SysUserEntity, { id: uid });
   }
 
-  async getUserRoleDeptProfJobInfo(edituid: number, opuid: number) {
+  async getUserRoleDeptProfJobInfo(edituid: number) {
     if (this.generalService.isRootUser(edituid)) {
       throw new Error(`User ${edituid} illegally obtaining root info`);
     }
@@ -151,86 +149,19 @@ export class SystemUserService extends AbstractService {
       select: ['id', 'name'],
     });
 
-    // 超级管理员，则直接返回全部角色
-    const operateIsRootUser = this.generalService.isRootUser(opuid);
-    if (operateIsRootUser) {
-      const allRoles = await this.entityManager.find(SysRoleEntity, {
-        select: ['id', 'parentId', 'name'],
-      });
-
-      return new SysUserRdpjInfoRespDto(
-        profs,
-        depts,
-        jobs,
-        allRoles.map((e) => new RoleInfoDto(e, BoolTypeEnum.True)),
-      );
-    }
-
-    const opUserInfo = await this.entityManager.findOne(SysUserEntity, {
-      select: ['id', 'roleIds'],
-      where: {
-        id: opuid,
-      },
+    const allRoles = await this.entityManager.find(SysRoleEntity, {
+      select: ['id', 'parentId', 'name'],
     });
 
-    const rolesIds: number[] = [];
-    // 获取当前操作的管理员所能编辑的所有角色权限
-    rolesIds.push(...opUserInfo.roleIds);
-
-    // 如果需要查询的用户时，则要判断查询的用户具备的角色是否都可被当前操作的管理员所进行编辑
-    if (edituid !== 0) {
-      const editUserInfo = await this.entityManager.findOne(SysUserEntity, {
-        select: ['id', 'roleIds'],
-        where: {
-          id: edituid,
-        },
-      });
-
-      rolesIds.push(...editUserInfo.roleIds);
-    }
-
-    const rolesInfo = await this.entityManager.find(SysRoleEntity, {
-      select: ['id', 'name', 'parentId'],
-      where: {
-        id: In(rolesIds),
-      },
-    });
-
-    return new SysUserRdpjInfoRespDto(
-      profs,
-      depts,
-      jobs,
-      rolesInfo.map((e) => {
-        const has = opUserInfo.roleIds.includes(e.id)
-          ? BoolTypeEnum.True
-          : BoolTypeEnum.False;
-        return new RoleInfoDto(e, has);
-      }),
-    );
+    return new SysUserRdpjInfoRespDto(profs, depts, jobs, allRoles);
   }
 
-  async addUser(item: SysUserAddReqDto, opuid: number): Promise<void> {
+  async addUser(item: SysUserAddReqDto): Promise<void> {
     await this.checkJobOrDeptOrProfExists(
       item.jobId,
       item.deptId,
       item.professionId,
     );
-
-    // 检查新增的用户角色是否为当前操作用户可操作范围，防止越权
-    const opUserInfo = await this.entityManager.findOne(SysUserEntity, {
-      select: ['id', 'roleIds'],
-      where: {
-        id: opuid,
-      },
-    });
-
-    let isExceed = false;
-    if (!this.generalService.isRootUser(opuid)) {
-      isExceed = item.roleIds.some((e) => !opUserInfo.roleIds.includes(e));
-    }
-    if (isExceed) {
-      throw new ApiFailedException(ErrorEnum.CODE_1101);
-    }
 
     // 创建用户
     await this.entityManager.insert(SysUserEntity, {
@@ -240,44 +171,12 @@ export class SystemUserService extends AbstractService {
     });
   }
 
-  async updateUser(item: SysUserUpdateReqDto, opuid: number): Promise<void> {
+  async updateUser(item: SysUserUpdateReqDto): Promise<void> {
     await this.checkJobOrDeptOrProfExists(
       item.jobId,
       item.deptId,
       item.professionId,
     );
-
-    let isExceed = false;
-    if (!this.generalService.isRootUser(opuid)) {
-      const users = await this.entityManager.find(SysUserEntity, {
-        select: ['id', 'roleIds'],
-        where: {
-          id: In([item.id, opuid]),
-        },
-      });
-
-      const editUser = users.find((e) => e.id === item.id);
-      const opUser = users.find((e) => e.id === opuid);
-
-      // 当被编辑用户的角色权限与当前操作用户的角色权限存在差异时，检查是否操作越权
-      let forbiddenRoleIds: number[] = difference(
-        editUser.roleIds,
-        opUser.roleIds,
-      );
-
-      // 查找是否有修改了当前操作用户所不具备的权限
-      isExceed = forbiddenRoleIds.some((e) => !item.roleIds.includes(e));
-
-      // 如果已经越权了则无需再做后续判断
-      if (!isExceed) {
-        // 过滤掉禁止修改的权限，剩余判断自身操作用户所拥有的的权限，防止越权
-        forbiddenRoleIds = without(item.roleIds, ...forbiddenRoleIds);
-        isExceed = forbiddenRoleIds.some((e) => !opUser.roleIds.includes(e));
-      }
-    }
-    if (isExceed) {
-      throw new ApiFailedException(ErrorEnum.CODE_1101);
-    }
 
     // 更新用户
     await this.entityManager.update(

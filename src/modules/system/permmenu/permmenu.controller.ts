@@ -8,7 +8,6 @@ import {
 } from './permmenu.dto';
 import { SystemPermMenuService } from './permmenu.service';
 import { wrapResponse } from '/@/common/utils/swagger';
-import { AuthUser } from '/@/decorators/auth-user.decorator';
 import { ApiSecurityAuth } from '/@/decorators/swagger.decorator';
 
 @ApiTags('System permission and menu - 系统权限及菜单')
@@ -24,37 +23,31 @@ export class SystemPermMenuController {
       struct: 'list',
     }),
   })
-  async list(@AuthUser('uid') uid: number) {
-    return await this.pmService.getPermMenuByList(uid);
+  async list() {
+    return await this.pmService.getPermMenuByList();
   }
 
   @Post('delete')
   @ApiOkResponse({
     type: wrapResponse(),
   })
-  async delete(
-    @AuthUser('uid') uid: number,
-    @Body() body: SysPermMenuDeleteReqDto,
-  ) {
-    await this.pmService.deletePermMenu(uid, body);
+  async delete(@Body() body: SysPermMenuDeleteReqDto) {
+    await this.pmService.deletePermMenu(body);
   }
 
   @Post('add')
   @ApiOkResponse({
     type: wrapResponse(),
   })
-  async add(@AuthUser('uid') uid: number, @Body() body: SysPermMenuAddReqDto) {
-    await this.pmService.addPermMenu(uid, body);
+  async add(@Body() body: SysPermMenuAddReqDto) {
+    await this.pmService.addPermMenu(body);
   }
 
   @Post('update')
   @ApiOkResponse({
     type: wrapResponse(),
   })
-  async update(
-    @AuthUser('uid') uid: number,
-    @Body() body: SysPermMenuUpdateReqDto,
-  ) {
-    await this.pmService.updatePermMenu(uid, body);
+  async update(@Body() body: SysPermMenuUpdateReqDto) {
+    await this.pmService.updatePermMenu(body);
   }
 }
