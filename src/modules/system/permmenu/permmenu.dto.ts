@@ -60,8 +60,7 @@ export class SysPermMenuAddReqDto {
   @ValidateIf((o) => o.type !== SysMenuTypeEnum.Permission)
   router: string;
 
-  @StringField()
-  @ValidateIf((o) => o.type === SysMenuTypeEnum.Menu)
+  @StringField({ required: false })
   viewPath: string;
 
   @StringField({
@@ -94,9 +93,8 @@ export class SysPermMenuItemRespDto {
   router: string;
   type: number;
   viewPath: string;
-  has: number;
 
-  constructor(entity: SysPermMenuEntity, has: number) {
+  constructor(entity: SysPermMenuEntity) {
     this.activeRouter = entity.activeRouter;
     this.icon = entity.icon;
     this.id = entity.id;
@@ -108,6 +106,5 @@ export class SysPermMenuItemRespDto {
     this.router = entity.router;
     this.type = entity.type;
     this.viewPath = entity.viewPath;
-    this.has = has;
   }
 }

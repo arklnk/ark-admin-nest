@@ -12,7 +12,6 @@ import {
 } from './user.dto';
 import { SystemUserService } from './user.service';
 import { wrapResponse } from '/@/common/utils/swagger';
-import { AuthUser } from '/@/decorators/auth-user.decorator';
 import { ApiSecurityAuth } from '/@/decorators/swagger.decorator';
 
 @ApiTags('System user - 系统用户')
@@ -58,29 +57,23 @@ export class SystemUserController {
       type: SysUserRdpjInfoRespDto,
     }),
   })
-  async rdpjInfo(
-    @Query() query: SysUserRdpjInfoReqDto,
-    @AuthUser('uid') uid: number,
-  ) {
-    return await this.userService.getUserRoleDeptProfJobInfo(query.userId, uid);
+  async rdpjInfo(@Query() query: SysUserRdpjInfoReqDto) {
+    return await this.userService.getUserRoleDeptProfJobInfo(query.userId);
   }
 
   @Post('add')
   @ApiOkResponse({
     type: wrapResponse(),
   })
-  async add(@Body() body: SysUserAddReqDto, @AuthUser('uid') uid: number) {
-    await this.userService.addUser(body, uid);
+  async add(@Body() body: SysUserAddReqDto) {
+    await this.userService.addUser(body);
   }
 
   @Post('update')
   @ApiOkResponse({
     type: wrapResponse(),
   })
-  async update(
-    @Body() body: SysUserUpdateReqDto,
-    @AuthUser('uid') uid: number,
-  ) {
-    await this.userService.updateUser(body, uid);
+  async update(@Body() body: SysUserUpdateReqDto) {
+    await this.userService.updateUser(body);
   }
 }

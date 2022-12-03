@@ -1,7 +1,6 @@
 import { OmitType } from '@nestjs/swagger';
 import { PageOptionsDto } from '/@/common/dtos/page-options.dto';
 import { NumberField, StringField } from '/@/decorators/field.decorator';
-import { SysRoleEntity } from '/@/entities/sys-role.entity';
 import { ISysUserPagingQueryItem } from '/@/interfaces/repository';
 
 export class SysUserPageReqDto extends PageOptionsDto {
@@ -138,6 +137,15 @@ export class IdNameInfoDto {
   }
 }
 
+export class IdNameTreeInfoDto extends IdNameInfoDto {
+  parentId: number;
+
+  constructor(id: number, name: string, parentId: number) {
+    super(id, name);
+    this.parentId = parentId;
+  }
+}
+
 export class SysUserPageItemRespDto {
   id: number;
   account: string;
@@ -181,37 +189,17 @@ export class SysUserPageItemRespDto {
   }
 }
 
-export class DeptInfoDto extends IdNameInfoDto {
-  parentId: number;
-
-  constructor(id: number, name: string, parentId: number) {
-    super(id, name);
-    this.parentId = parentId;
-  }
-}
-
-export class RoleInfoDto extends IdNameInfoDto {
-  parentId: number;
-  has: number;
-
-  constructor(entity: SysRoleEntity, has: number) {
-    super(entity.id, entity.name);
-    this.parentId = entity.parentId;
-    this.has = has;
-  }
-}
-
 export class SysUserRdpjInfoRespDto {
   profession: IdNameInfoDto[];
-  dept: DeptInfoDto[];
+  dept: IdNameTreeInfoDto[];
   job: IdNameInfoDto[];
-  role: RoleInfoDto[];
+  role: IdNameTreeInfoDto[];
 
   constructor(
     profs: IdNameInfoDto[],
-    depts: DeptInfoDto[],
+    depts: IdNameTreeInfoDto[],
     jobs: IdNameInfoDto[],
-    roles: RoleInfoDto[],
+    roles: IdNameTreeInfoDto[],
   ) {
     this.profession = profs;
     this.dept = depts;
