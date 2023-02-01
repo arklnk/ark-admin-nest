@@ -26,14 +26,16 @@ export class AppConfigService {
 
   get appConfig() {
     return {
-      port: this.getNumber('PORT'),
-      globalPrefix: this.getString('GLOBAL_PREFIX'),
-      rootUserId: this.getNumber('ROOT_USER_ID'),
-      userPwdSalt: this.getString('USER_PWD_SALT'),
-      userDefaultPwd: this.getString('USER_DEFAULT_PWD'),
-      protectSysPermMenuMaxId: this.getNumber('PROTECT_SYS_PERMMENU_MAX_ID'),
-      protectSysDictionaryMaxId: this.getNumber(
-        'PROTECT_SYS_DICTIONARY_MAX_ID',
+      port: this.get<number>('application.port'),
+      globalPrefix: this.get('application.name'),
+      rootUserId: this.get<number>('application.rootUserId'),
+      userPwdSalt: this.get('application.userPwdSalt'),
+      userDefaultPwd: this.get('application.userDefaultPwd'),
+      protectSysPermMenuMaxId: this.get<number>(
+        'application.protectSysPermmenuMaxId',
+      ),
+      protectSysDictionaryMaxId: this.get<number>(
+        'application.protectSysDictionaryMaxId',
       ),
     };
   }
@@ -41,30 +43,25 @@ export class AppConfigService {
   get redisConfig(): RedisClientOptions {
     return {
       keyPrefix: `${this.appConfig.globalPrefix}:`,
-      host: this.getString('REDIS_HOST'),
-      port: this.getNumber('REDIS_PORT'),
-      password: this.getString('REDIS_PASSWORD'),
-      db: this.getNumber('REDIS_DB'),
+      host: this.get('redis.host'),
+      port: this.get<number>('redis.port'),
+      password: this.get('redis.password'),
+      db: this.get<number>('redis.db'),
     };
   }
 
   get jwtConfig(): JwtModuleOptions & { expires?: number } {
     return {
-      secret: this.getString('JWT_SECRET'),
-      expires: this.getNumber('JWT_EXPIRES'),
+      secret: this.get('jwt.secret'),
+      expires: this.get<number>('jwt.expires'),
     };
   }
 
   get typeormConfig(): TypeOrmModuleOptions {
     // LOG_ORM_ENABLE config if use array must be a json string
-    let loggerOptions: LoggerOptions = this.getString('DB_LOGGING') as 'all';
-
-    try {
-      // if config value is all will parse error
-      loggerOptions = JSON.parse(loggerOptions);
-    } catch {
-      // ignore
-    }
+    const loggerOptions: LoggerOptions = this.get<boolean | string | string[]>(
+      'db.logging',
+    ) as 'all';
 
     // entities load
     let entities = [__dirname + '/../../entities/**/*.entity{.ts,.js}'];
@@ -89,11 +86,11 @@ export class AppConfigService {
 
     return {
       type: 'mysql',
-      host: this.getString('DB_HOST'),
-      port: this.getNumber('DB_PORT'),
-      username: this.getString('DB_USERNAME'),
-      password: this.getString('DB_PASSWORD'),
-      database: this.getString('DB_DATABASE'),
+      host: this.get('db.host'),
+      port: this.get<number>('db.port'),
+      username: this.get('db.username'),
+      password: this.get('db.password'),
+      database: this.get('db.database'),
       logging: loggerOptions,
       logger: new TypeORMLogger(loggerOptions),
       entities,
@@ -102,49 +99,23 @@ export class AppConfigService {
 
   get swaggerConfig() {
     return {
-      enable: this.getBoolean('SWAGGER_ENABLE'),
-      path: this.getString('SWAGGER_PATH'),
+      enable: this.get<boolean>('swagger.enable'),
+      path: this.get('swagger.path'),
     };
   }
 
   get loggerConfig() {
     return {
-      level: this.getString('LOGGER_LEVEL'),
-      maxFiles: this.getNumber('LOGGER_MAX_FILES'),
+      level: this.get('logger.level'),
+      maxFiles: this.get<number>('logger.maxFiles'),
     };
-  }
-
-  getString(key: string): string {
-    const value = this.get(key);
-
-    return value.replace(/\\n/g, '\n');
-  }
-
-  getNumber(key: string): number {
-    const value = this.get(key);
-
-    try {
-      return Number(value);
-    } catch {
-      throw new Error(key + ' environment variable is not a number');
-    }
-  }
-
-  getBoolean(key: string): boolean {
-    const value = this.get(key);
-
-    try {
-      return Boolean(JSON.parse(value));
-    } catch {
-      throw new Error(key + ' environment variable is not a boolean');
-    }
   }
 
   /**
    * internal function
    */
-  private get(key: string): string {
-    const value = this.configService.get<string>(key);
+  private get<T = string>(key: string): T {
+    const value = this.configService.get<T>(key);
 
     if (isNil(value)) {
       throw new Error(key + ' environment variable does not set');
