@@ -37,6 +37,5 @@ lerna-debug.log*
 # Dev data
 /data/
 
-# Local env
-.env.local
-.env.*.local
+# Development env
+bootstrap-development.yaml

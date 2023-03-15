@@ -10,17 +10,13 @@ import { UserModule } from './modules/user/user.module';
 import { SystemModule } from './modules/system/system.module';
 import { LogModule } from './modules/log/log.module';
 import { ConfigModule } from './modules/config/config.module';
+import configuration from './configuration';
 
 @Module({
   imports: [
     NestConfigModule.forRoot({
       isGlobal: true,
-      envFilePath: [
-        `.env.${process.env.NODE_ENV}.local`,
-        `.env.${process.env.NODE_ENV}`,
-        '.env.local',
-        '.env',
-      ],
+      load: [configuration],
     }),
     RedisModule.forRootAsync(
       {

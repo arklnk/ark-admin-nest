@@ -25,7 +25,7 @@ WORKDIR /app
 RUN npm install -g pnpm
 
 COPY --from=build /app/dist ./dist
-COPY --from=build /app/package.json /app/pnpm-lock.yaml /app/.env /app/.env.production ./
+COPY --from=build /app/package.json /app/pnpm-lock.yaml /app/bootstrap.yaml /app/bootstrap-*.yaml ./
 
 # 安装tzdata,默认的alpine基础镜像不包含时区组件，安装后可通过TZ环境变量配置时区
 RUN apk add --no-cache tzdata
